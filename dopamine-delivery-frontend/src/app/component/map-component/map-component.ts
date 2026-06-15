@@ -170,6 +170,43 @@ export class MapComponent implements OnInit, OnDestroy{
     this.map.addLayer(carLayer);
   }
 
+  private setupRouteLayer(coordinates: [number, number][]): void {
+    const routeGeoJson = {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: coordinates
+      }
+    };
+
+    if (this.map.getSource('route-source')) {
+      const source = this.map.getSource('route-source') as any;
+      source.setData(routeGeoJson);
+      return;
+    }
+
+    this.map.addSource('route-source', {
+      type: 'geojson',
+      data: routeGeoJson
+    });
+
+    this.map.addLayer({
+      id: 'route-layer',
+      type: 'line',
+      source: 'route-source',
+      layout: {
+        'line-join': 'round',
+        'line-cap': 'round'
+      },
+      paint: {
+        'line-color': '#ff0000',
+        'line-width': 6,
+        'line-opacity': 0.8
+      }
+    });
+  }
+
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();

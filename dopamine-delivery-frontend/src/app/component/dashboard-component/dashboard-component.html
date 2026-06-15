@@ -1,0 +1,28 @@
+<div class="dashboard-layout">
+
+  <section class="map-section">
+    <app-map-component></app-map-component>
+  </section>
+
+  <section class="search-section">
+    <app-address-bar (addressSelected)="onAddressSelected($event)"></app-address-bar>
+  </section>
+
+  <section class="content-section">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Szukam najlepszych restauracji w Twojej okolicy...</p>
+      </div>
+    } @else if (deliveryService.userAddress()) {
+      <div class="fade-in-results">
+        <app-restaurant-list-component [restaurants]="restaurants()"></app-restaurant-list-component>
+      </div>
+    } @else {
+      <div class="welcome-state">
+        <p>Wpisz swój adres powyżej, aby zobaczyć dostępne restauracje! 🍕</p>
+      </div>
+    }
+  </section>
+
+</div>

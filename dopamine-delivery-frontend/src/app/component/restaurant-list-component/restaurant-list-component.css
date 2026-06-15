@@ -1,0 +1,166 @@
+:host {
+  display: block;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 40px 20px;
+  color: #212529;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.list-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.list-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+}
+
+.list-header .subtitle {
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.restaurant-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.card-body {
+  padding: 24px;
+}
+
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.restaurant-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.cuisine-badge {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #495057;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.icon {
+  color: #adb5bd;
+  flex-shrink: 0;
+}
+
+.address-text {
+  line-height: 1.4;
+}
+
+.web-link {
+  color: #ff385c;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.web-link:hover {
+  text-decoration: underline;
+}
+
+.card-footer {
+  background-color: #fafafa;
+  padding: 14px 24px;
+  border-top: 1px solid #f1f3f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ff385c;
+}
+
+.arrow-icon {
+  color: #ff385c;
+  transition: transform 0.2s ease;
+}
+
+.restaurant-card:hover .arrow-icon {
+  transform: translateX(4px);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px dashed #dee2e6;
+  max-width: 500px;
+  margin: 40px auto 0;
+}
+
+.empty-icon {
+  color: #6c757d;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: #6c757d;
+  margin: 0;
+}
