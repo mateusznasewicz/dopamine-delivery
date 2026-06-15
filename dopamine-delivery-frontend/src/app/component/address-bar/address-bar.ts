@@ -1,9 +1,9 @@
 import { Component, inject, OnInit, DestroyRef, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
-import { GeocodingService } from '../service/geocoding-service';
+import { GeocodingService } from '../../service/geocoding-service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Address } from '../model/address';
+import { Address } from '../../model/address';
 
 @Component({
   selector: 'app-address-bar',
