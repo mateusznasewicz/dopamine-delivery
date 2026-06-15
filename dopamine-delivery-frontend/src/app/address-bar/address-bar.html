@@ -1,0 +1,16 @@
+<div class="search-container">
+  <input type="text" [formControl]="searchControl" placeholder="Wpisz adres dostawy...">
+
+  @if (addressList() && addressList().length > 0) {
+    <ul class="suggestions-list">
+      
+      @for (item of addressList(); track item.displayName) {
+        <li (click)="selectAddress(item)">
+          <span class="icon">📍</span>
+          <span class="text">{{ item.displayName }}</span>
+        </li>
+      }
+      
+    </ul>
+  }
+</div>
