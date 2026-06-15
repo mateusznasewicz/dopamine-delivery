@@ -1,5 +1,5 @@
 import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { AddLayerObject, Map, MercatorCoordinate } from 'maplibre-gl';
+import { AddLayerObject, FlyToOptions, Map, MercatorCoordinate } from 'maplibre-gl';
 import { Subscription } from 'rxjs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -20,14 +20,20 @@ export class MapComponent implements OnInit, OnDestroy{
 
   ngOnInit(): void {
     this.initMap()
-    this.routeSubscription = this.deliveryService.routeCoordinates$.subscribe(points => this.setupRouteLayer(points));  
+    this.routeSubscription = this.deliveryService.routeCoordinates$.subscribe(points => {
+      const lat = points[0][1];
+      const lon = points[0][0];
+
+      this.centerMapOn(lat, lon);
+      this.setupRouteLayer(points)
+    });  
   }
 
   private initMap(): void {
     this.map = new Map({
       style: 'https://tiles.openfreemap.org/styles/bright',
       center: [17.0324, 51.1079],
-      zoom: 15.5,
+      zoom: 16,
       pitch: 45,
       bearing: -17.6,
       container: this.mapContainer.nativeElement,
@@ -212,6 +218,22 @@ export class MapComponent implements OnInit, OnDestroy{
         'line-opacity': 0.8
       }
     });
+  }
+
+  centerMapOn(lat: number, lon: number, zoomLevel: number = 17): void {
+    if (!this.map) return;
+    
+    const options: FlyToOptions = {
+      center: [lon, lat],
+      zoom: zoomLevel,
+      pitch: 45,
+      bearing: -17.6,
+      speed: 0.8,
+      curve: 1,
+      essential: true
+    }
+
+    this.map.flyTo(options);
   }
 
   ngOnDestroy(): void {
