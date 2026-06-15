@@ -18,6 +18,17 @@ export class MapComponent implements OnInit, OnDestroy{
   private routeSubscription!: Subscription;
   private deliveryService = inject(DeliveryService);
 
+  private carModel: THREE.Group | null = null;
+  private carTransform = {
+    translateX: 0,
+    translateY: 0,
+    translateZ: 0,
+    rotateX: Math.PI / 2,
+    rotateY: Math.PI,
+    rotateZ: 0,
+    scale: 0
+  };
+
   ngOnInit(): void {
     this.initMap()
     this.routeSubscription = this.deliveryService.routeCoordinates$.subscribe(points => {
@@ -26,6 +37,8 @@ export class MapComponent implements OnInit, OnDestroy{
 
       this.centerMapOn(lat, lon);
       this.setupRouteLayer(points)
+      this.setupCarLayer(points[0], points[1]);
+      this.animateRoute(points);
     });  
   }
 
@@ -42,9 +55,60 @@ export class MapComponent implements OnInit, OnDestroy{
 
     this.map.on('load', () => {
       this.setup3dBuidlingsLayer();
-      const carLocation: [number, number] = [17.0324, 51.1079];
-      this.setupCarLayer(carLocation);
     });
+  }
+
+  private async animateRoute(points: [number, number][]): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const start = points[i];
+      const end = points[i + 1];
+
+      this.rotateCarTowards(start, end);
+      await this.moveCar(start, end, 350);
+    }
+  }
+
+  private moveCar(start: [number, number], end: [number, number], duration: number): Promise<void> {
+    return new Promise((resolve) => {
+      const startTime = performance.now();
+
+      const updatePosition = (currentTime: number) => {
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+
+        const currentLng = start[0] + (end[0] - start[0]) * progress;
+        const currentLat = start[1] + (end[1] - start[1]) * progress;
+
+        const currentAsMercator = MercatorCoordinate.fromLngLat([currentLng, currentLat], 0);
+
+        this.carTransform.translateX = currentAsMercator.x;
+        this.carTransform.translateY = currentAsMercator.y;
+        this.carTransform.translateZ = currentAsMercator.z;
+
+        this.map.triggerRepaint();
+
+        if (progress < 1) {
+          requestAnimationFrame(updatePosition);
+        } else {
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(updatePosition);
+    });
+  }
+
+  private rotateCarTowards(start: [number, number], end: [number, number]): void {
+    const startM = MercatorCoordinate.fromLngLat(start, 0);
+    const endM = MercatorCoordinate.fromLngLat(end, 0);
+
+    const dx = endM.x - startM.x;
+    const dy = endM.y - startM.y;
+
+    const angleRad = Math.atan2(dx, dy);
+    this.carTransform.rotateZ = angleRad - Math.PI;
   }
 
   private setup3dBuidlingsLayer(): void {
@@ -99,18 +163,15 @@ export class MapComponent implements OnInit, OnDestroy{
     );
   }
 
-  private setupCarLayer(location: [number, number]): void {
-   const modelAsMercator = MercatorCoordinate.fromLngLat(location, 0);
+  private setupCarLayer(location: [number, number], direction: [number, number]): void {
+    const modelAsMercator = MercatorCoordinate.fromLngLat(location, 0);
 
-    const modelTransform = {
-      translateX: modelAsMercator.x,
-      translateY: modelAsMercator.y,
-      translateZ: modelAsMercator.z,
-      rotateX: Math.PI / 2,
-      rotateY: Math.PI,
-      rotateZ: 0,
-      scale: modelAsMercator.meterInMercatorCoordinateUnits() * 5
-    };
+    this.carTransform.translateX = modelAsMercator.x;
+    this.carTransform.translateY = modelAsMercator.y;
+    this.carTransform.translateZ = modelAsMercator.z;
+    this.carTransform.scale = modelAsMercator.meterInMercatorCoordinateUnits() * 5;
+
+    this.rotateCarTowards(location, direction);
 
     let camera: THREE.Camera;
     let scene: THREE.Scene;
@@ -159,17 +220,17 @@ export class MapComponent implements OnInit, OnDestroy{
       },
 
       render: (gl, args) => {
-        const rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), modelTransform.rotateX);
-        const rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), modelTransform.rotateY);
-        const rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), modelTransform.rotateZ);
+        const rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), this.carTransform.rotateX);
+        const rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), this.carTransform.rotateY);
+        const rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), this.carTransform.rotateZ);
 
         const m = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
         const l = new THREE.Matrix4()
-          .makeTranslation(modelTransform.translateX, modelTransform.translateY, modelTransform.translateZ)
-          .scale(new THREE.Vector3(modelTransform.scale, -modelTransform.scale, modelTransform.scale))
+          .makeTranslation(this.carTransform.translateX, this.carTransform.translateY, this.carTransform.translateZ)
+          .scale(new THREE.Vector3(this.carTransform.scale, -this.carTransform.scale, this.carTransform.scale))
+          .multiply(rotationZ)
           .multiply(rotationX)
-          .multiply(rotationY)
-          .multiply(rotationZ);
+          .multiply(rotationY);
 
         camera.projectionMatrix = m.multiply(l);
         
