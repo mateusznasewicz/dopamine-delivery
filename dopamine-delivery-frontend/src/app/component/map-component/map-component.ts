@@ -213,13 +213,6 @@ export class MapComponent implements OnInit, OnDestroy{
             scene.add(gltf.scene);
             
             this.map.triggerRepaint();
-            console.log('Model autka załadowany pomyślnie!');
-          },
-          (xhr) => {
-            console.log((xhr.loaded / xhr.total * 100) + '% załadowano model');
-          },
-          (error) => {
-            console.error('Wystąpił błąd podczas ładowania modelu 3D:', error);
           }
         );
 
@@ -257,7 +250,6 @@ export class MapComponent implements OnInit, OnDestroy{
   }
 
   private setupRouteLayer(coordinates: [number, number][]): void {
-    console.log("setup routew")
     const routeGeoJson = {
       type: 'Feature' as const,
       properties: {},
@@ -313,7 +305,6 @@ export class MapComponent implements OnInit, OnDestroy{
   private followCar(lng: number, lat: number): void {
     if (!this.map) return;
     const bearingInDegrees = this.carTransform.rotateZ * (180 / -Math.PI);
-    console.log(bearingInDegrees);
     this.map.easeTo({
       center: [lng, lat],
       duration: 0,
