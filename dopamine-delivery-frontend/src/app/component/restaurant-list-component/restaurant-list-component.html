@@ -7,7 +7,7 @@
   @if (restaurants().length > 0) {
     <div class="restaurant-grid">
       @for (restaurant of restaurants(); track restaurant.id) {
-        <div class="restaurant-card">
+        <div class="restaurant-card" (click)="startDelivery(restaurant)">
           
           <div class="card-body">
             <div class="title-row">

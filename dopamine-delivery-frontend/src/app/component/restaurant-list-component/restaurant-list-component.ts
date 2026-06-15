@@ -1,6 +1,6 @@
-import { Component, inject, input, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, inject, input} from '@angular/core';
 import { Restaurant } from '../../model/restaurant';
+import { DeliveryService } from '../../service/delivery-service';
 
 @Component({
   selector: 'app-restaurant-list-component',
@@ -9,8 +9,14 @@ import { Restaurant } from '../../model/restaurant';
   styleUrl: './restaurant-list-component.css',
 })
 export class RestaurantListComponent{
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  private deliveryService = inject(DeliveryService);
   restaurants = input<Restaurant[]>([]);
+
+
+  startDelivery(restaurant: Restaurant) {
+    console.log('start_delivery');
+    this.deliveryService.setRestaurant(restaurant);
+    this.deliveryService.startDelivery();
+  }
 
 }

@@ -1,7 +1,9 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AddLayerObject, Map, MercatorCoordinate } from 'maplibre-gl';
+import { Subscription } from 'rxjs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DeliveryService } from '../../service/delivery-service';
 
 @Component({
   selector: 'app-map-component',
@@ -13,8 +15,12 @@ export class MapComponent implements OnInit, OnDestroy{
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLDivElement>;
   private map!: Map;
 
+  private routeSubscription!: Subscription;
+  private deliveryService = inject(DeliveryService);
+
   ngOnInit(): void {
     this.initMap()
+    this.routeSubscription = this.deliveryService.routeCoordinates$.subscribe(points => this.setupRouteLayer(points));  
   }
 
   private initMap(): void {
@@ -171,6 +177,7 @@ export class MapComponent implements OnInit, OnDestroy{
   }
 
   private setupRouteLayer(coordinates: [number, number][]): void {
+    console.log("setup routew")
     const routeGeoJson = {
       type: 'Feature' as const,
       properties: {},
@@ -210,6 +217,10 @@ export class MapComponent implements OnInit, OnDestroy{
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();
+    }
+
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
     }
   }
 }

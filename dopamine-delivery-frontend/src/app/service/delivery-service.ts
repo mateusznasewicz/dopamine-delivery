@@ -2,6 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { RoutingService } from './routing-service';
 import { Address } from '../model/address';
 import { Restaurant } from '../model/restaurant';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -11,11 +12,11 @@ export class DeliveryService {
   
   private _userAddress = signal<Address | null>(null);
   private _selectedRestaurant = signal<Restaurant | null>(null);
-  private _routeCoordinates = signal<[number, number][]>([]);
+  private _routeCoordinatesSubject = new BehaviorSubject<[number, number][]>([]);
 
   userAddress = this._userAddress.asReadonly();
   selectedRestaurant = this._selectedRestaurant.asReadonly();
-  routeCoordinates = this._routeCoordinates.asReadonly();
+  routeCoordinates$: Observable<[number, number][]> = this._routeCoordinatesSubject.asObservable();
 
   setUserAddress(address: Address): void {
     this._userAddress.set(address);
@@ -23,5 +24,28 @@ export class DeliveryService {
 
   setRestaurant(restaurant: Restaurant): void {
     this._selectedRestaurant.set(restaurant);
+  }
+
+  startDelivery() {
+    const origin = this._selectedRestaurant();
+    const destination = this._userAddress();
+    console.log(origin);
+    console.log(destination);
+    if (!origin || !destination) {
+      console.warn('Brak restauracji lub adresu użytkownika.');
+      return;
+    }
+
+    this.routingService.getRoute(
+      [origin.lon, origin.lat], 
+      [+destination.lon, +destination.lat]
+    ).subscribe({
+      next: (coordinates) => {
+        if (coordinates && coordinates.length > 0) {
+          console.log(coordinates);
+          this._routeCoordinatesSubject.next(coordinates); 
+        }
+      }
+    });
   }
 }
