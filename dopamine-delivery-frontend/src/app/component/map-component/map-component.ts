@@ -70,13 +70,17 @@ export class MapComponent implements OnInit, OnDestroy{
       const end = points[i + 1];
 
       this.rotateCarTowards(start, end);
-      await this.moveCar(start, end, 350);
+      await this.moveCar(start, end, 50);
     }
     this.isRouteActive.set(false);
     this.isFollowing.set(false);
   }
 
-  private moveCar(start: [number, number], end: [number, number], duration: number): Promise<void> {
+  private moveCar(start: [number, number], end: [number, number], speed: number): Promise<void> {
+    const speedMS = speed / 3.6;
+    const distanceInMeters = this.calculateDistance(start, end);
+    const duration = (distanceInMeters / speedMS) * 1000;
+
     return new Promise((resolve) => {
       const startTime = performance.now();
 
@@ -308,17 +312,35 @@ export class MapComponent implements OnInit, OnDestroy{
 
   private followCar(lng: number, lat: number): void {
     if (!this.map) return;
-
+    const bearingInDegrees = this.carTransform.rotateZ * (180 / -Math.PI);
+    console.log(bearingInDegrees);
     this.map.easeTo({
       center: [lng, lat],
       duration: 0,
       essential: true,
-      zoom: 17 
+      zoom: 17,
+      bearing: bearingInDegrees
     });
   }
 
   toggleFollow(): void {
     this.isFollowing.set(!this.isFollowing());
+  }
+
+  private calculateDistance(point1: [number, number], point2: [number, number]): number {
+    const R = 6371000;
+    const lat1 = point1[1] * Math.PI / 180;
+    const lat2 = point2[1] * Math.PI / 180;
+    const deltaLat = (point2[1] - point1[1]) * Math.PI / 180;
+    const deltaLng = (point2[0] - point1[0]) * Math.PI / 180;
+
+    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
   }
 
   ngOnDestroy(): void {
