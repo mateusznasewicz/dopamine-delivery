@@ -1,5 +1,7 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FillExtrusionLayerSpecification, Map } from 'maplibre-gl';
+import { AddLayerObject, Map, MercatorCoordinate } from 'maplibre-gl';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 @Component({
   selector: 'app-map-component',
@@ -28,6 +30,8 @@ export class MapComponent implements OnInit, OnDestroy{
 
     this.map.on('load', () => {
       this.setup3dBuidlingsLayer();
+      const carLocation: [number, number] = [17.0324, 51.1079];
+      this.setupCarLayer(carLocation);
     });
   }
 
@@ -81,6 +85,89 @@ export class MapComponent implements OnInit, OnDestroy{
       },
       labelLayerId
     );
+  }
+
+  private setupCarLayer(location: [number, number]): void {
+   const modelAsMercator = MercatorCoordinate.fromLngLat(location, 0);
+
+    const modelTransform = {
+      translateX: modelAsMercator.x,
+      translateY: modelAsMercator.y,
+      translateZ: modelAsMercator.z,
+      rotateX: Math.PI / 2,
+      rotateY: Math.PI,
+      rotateZ: 0,
+      scale: modelAsMercator.meterInMercatorCoordinateUnits() * 5
+    };
+
+    let camera: THREE.Camera;
+    let scene: THREE.Scene;
+    let renderer: THREE.WebGLRenderer;
+
+    const carLayer: AddLayerObject =  {
+      id: 'threejs-car-layer',
+      type: 'custom',
+      renderingMode: '3d',
+      
+      onAdd: (mapInstance, gl) => {
+        camera = new THREE.Camera();
+        scene = new THREE.Scene();
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(0, -70, 100).normalize();
+        scene.add(directionalLight);
+
+        const loader = new GLTFLoader();
+        loader.load(
+          'sedan-sports.glb',
+          (gltf) => {
+            scene.add(gltf.scene);
+            
+            this.map.triggerRepaint();
+            console.log('Model autka załadowany pomyślnie!');
+          },
+          (xhr) => {
+            console.log((xhr.loaded / xhr.total * 100) + '% załadowano model');
+          },
+          (error) => {
+            console.error('Wystąpił błąd podczas ładowania modelu 3D:', error);
+          }
+        );
+
+        renderer = new THREE.WebGLRenderer({
+          canvas: mapInstance.getCanvas(),
+          context: gl,
+          antialias: true
+        });
+
+        renderer.autoClear = false;
+      },
+
+      render: (gl, args) => {
+        const rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), modelTransform.rotateX);
+        const rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), modelTransform.rotateY);
+        const rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), modelTransform.rotateZ);
+
+        const m = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
+        const l = new THREE.Matrix4()
+          .makeTranslation(modelTransform.translateX, modelTransform.translateY, modelTransform.translateZ)
+          .scale(new THREE.Vector3(modelTransform.scale, -modelTransform.scale, modelTransform.scale))
+          .multiply(rotationX)
+          .multiply(rotationY)
+          .multiply(rotationZ);
+
+        camera.projectionMatrix = m.multiply(l);
+        
+        renderer.resetState();
+        renderer.render(scene, camera);
+        this.map.triggerRepaint();
+      }
+    };
+
+    this.map.addLayer(carLayer);
   }
 
   ngOnDestroy(): void {
