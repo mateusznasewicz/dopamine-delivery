@@ -64,7 +64,9 @@ export class GeocodingService {
         return elements.filter((restaurant: Restaurant) => 
           restaurant.tags && 
           restaurant.tags['addr:street'] && 
-          restaurant.tags['addr:housenumber']
+          restaurant.tags['addr:housenumber'] &&
+          restaurant.tags['cuisine'] &&
+          restaurant.tags.name
         );
       })
     );

@@ -3,7 +3,7 @@
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   height: 100vh;
   width: 100vw;
-  overflow: hidden; /* Blokujemy scroll całego ekranu, przewijana będzie tylko lista */
+  overflow: hidden;
   position: relative;
 }
 
@@ -13,65 +13,73 @@
   height: 100%;
 }
 
-/* 1. MAPA JAKO PEŁNE TŁO - pod spodem wszystkiego */
 .map-section {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1; /* Najniższa warstwa */
+  z-index: 1;
 }
 
-/* Wymuszenie na komponencie mapy, by zajął całą przestrzeń */
 .map-section app-map-component {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-/* 2. PANEL WYSZUKIWANIA - Pływający na górze */
 .search-section {
   position: absolute;
   top: 24px;
   left: 24px;
   right: 24px;
-  z-index: 10; /* Nad mapą i nad listą boczną */
+  z-index: 10;
   display: flex;
   justify-content: center;
-  pointer-events: none; /* Sprawia, że kliknięcia obok inputa "przelatują" do mapy */
+  pointer-events: none;
 }
 
-/* Przywracamy klikalność dla samej wyszukiwarki */
 .search-section app-address-bar {
   pointer-events: auto;
   width: 100%;
   max-width: 600px;
 }
 
-/* 3. PANEL BOCZNY (ZAWARTOSĆ / RESTAURACJE) */
 .content-section {
   position: absolute;
-  top: 100px; /* Zaczyna się pod wyszukiwarką */
+  top: 100px;
   left: 24px;
   bottom: 24px;
-  width: 400px; /* Sztywna szerokość panelu bocznego */
-  background: rgba(255, 255, 255, 0.95); /* Lekko przezroczysty biały */
-  backdrop-filter: blur(8px); /* Eleganckie rozmycie mapy pod panelem */
+  width: 400px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  z-index: 5; /* Nad mapą, ale pod wyszukiwarką */
-  overflow-y: auto; /* LISTA BĘDZIE SIĘ SCROLLOWAĆ WEWNĄTRZ PANELU */
+  z-index: 5;
+  overflow-y: auto;
   padding: 20px;
   box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
-/* Styl dla stanów ładowania i powitania w panelu bocznym */
 .loading-state, .welcome-state {
   text-align: center;
   padding: 40px 10px;
   color: #495057;
+}
+
+.content-section p {
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #495057;
+  margin: 0;
+}
+
+.welcome-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
 }
 
 .spinner {
@@ -87,4 +95,10 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }

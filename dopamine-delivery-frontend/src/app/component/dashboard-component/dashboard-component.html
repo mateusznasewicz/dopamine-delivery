@@ -12,7 +12,7 @@
     @if (isLoading()) {
       <div class="loading-state">
         <div class="spinner"></div>
-        <p>Szukam najlepszych restauracji w Twojej okolicy...</p>
+        <p>Searching for resutarants in your area...</p>
       </div>
     } @else if (deliveryService.userAddress()) {
       <div class="fade-in-results">
@@ -20,7 +20,8 @@
       </div>
     } @else {
       <div class="welcome-state">
-        <p>Wpisz swój adres powyżej, aby zobaczyć dostępne restauracje! 🍕</p>
+        <div class="welcome-icon">🍕</div>
+        <p>Enter your delivery address above to discover the best restaurants in your area!</p>
       </div>
     }
   </section>
