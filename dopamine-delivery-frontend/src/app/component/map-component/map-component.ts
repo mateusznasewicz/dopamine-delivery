@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { AddLayerObject, FlyToOptions, Map, MercatorCoordinate } from 'maplibre-gl';
 import { Subscription } from 'rxjs';
 import * as THREE from 'three';
@@ -17,6 +17,8 @@ export class MapComponent implements OnInit, OnDestroy{
 
   private routeSubscription!: Subscription;
   private deliveryService = inject(DeliveryService);
+  isFollowing = signal<boolean>(true);
+  isRouteActive = signal<boolean>(false);
 
   private carModel: THREE.Group | null = null;
   private carTransform = {
@@ -60,6 +62,8 @@ export class MapComponent implements OnInit, OnDestroy{
 
   private async animateRoute(points: [number, number][]): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 1000));
+    this.isRouteActive.set(true);
+    this.isFollowing.set(true);
 
     for (let i = 0; i < points.length - 1; i++) {
       const start = points[i];
@@ -68,6 +72,8 @@ export class MapComponent implements OnInit, OnDestroy{
       this.rotateCarTowards(start, end);
       await this.moveCar(start, end, 350);
     }
+    this.isRouteActive.set(false);
+    this.isFollowing.set(false);
   }
 
   private moveCar(start: [number, number], end: [number, number], duration: number): Promise<void> {
@@ -80,6 +86,9 @@ export class MapComponent implements OnInit, OnDestroy{
 
         const currentLng = start[0] + (end[0] - start[0]) * progress;
         const currentLat = start[1] + (end[1] - start[1]) * progress;
+        if (this.isFollowing()) {
+          this.followCar(currentLng, currentLat);
+        }
 
         const currentAsMercator = MercatorCoordinate.fromLngLat([currentLng, currentLat], 0);
 
@@ -295,6 +304,21 @@ export class MapComponent implements OnInit, OnDestroy{
     }
 
     this.map.flyTo(options);
+  }
+
+  private followCar(lng: number, lat: number): void {
+    if (!this.map) return;
+
+    this.map.easeTo({
+      center: [lng, lat],
+      duration: 0,
+      essential: true,
+      zoom: 17 
+    });
+  }
+
+  toggleFollow(): void {
+    this.isFollowing.set(!this.isFollowing());
   }
 
   ngOnDestroy(): void {

@@ -1,3 +1,13 @@
-<div class="full-screen-map-wrapper">
-  <div #mapContainer class="map-viewport"></div>
+<div class="map-wrapper">
+  <div #mapContainer class="map-container"></div>
+
+  @if (isRouteActive()) {
+    <button class="follow-btn" (click)="toggleFollow()" [class.active]="isFollowing()">
+      @if (isFollowing()) {
+        <span class="icon">🔒</span> Unfollow Car
+      } @else {
+        <span class="icon">🎥</span> Follow Car
+      }
+    </button>
+  }
 </div>
