@@ -4,6 +4,7 @@ import { DeliveryService } from '../../service/delivery-service';
 import { NgStyle } from '@angular/common';
 import { MenuService } from '../../service/menu-service';
 import { RestaurantStateService } from '../../service/restaurant-state-service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-restaurant-list-component',
@@ -15,6 +16,7 @@ export class RestaurantListComponent{
 
   private deliveryService = inject(DeliveryService);
   private menuService = inject(MenuService);
+  private router = inject(Router);
   private restaurantStateservice = inject(RestaurantStateService);
   restaurants = this.restaurantStateservice.restaurants;
 
@@ -28,5 +30,6 @@ export class RestaurantListComponent{
     // // const cuisineTags = restaurant.tags.cuisine!.split(';');
     // // cuisineTags.forEach(tag => this.menuService.getRestaurantMenu(tag).subscribe());
     this.restaurantStateservice.updateExpandMenuHorizontal(true);
+    this.router.navigate(['/dashboard', 'restaurants']);
   }
 }

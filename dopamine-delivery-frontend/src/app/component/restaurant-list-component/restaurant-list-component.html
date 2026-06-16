@@ -9,26 +9,29 @@
       @for (restaurant of restaurants(); track restaurant.id) {
         <div class="restaurant-card fade-in-down" (click)="viewMenu(restaurant)">
           
-            <div class="card-body" [ngStyle]="{'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(\'/images/' + restaurant.properties.image_name!.replace('\'', '%27') + '\')'}"><div class="title-row">
-              <h3 class="restaurant-name">{{ restaurant.properties.other_tags.name }}</h3>
+            <div class="card-body" [ngStyle]="{'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(\'/images/' + restaurant.properties.image_name!.replace('\'', '%27') + '\')'}">
+              <div class="title-row">
+                <h3 class="restaurant-name">{{ restaurant.properties.name }}</h3>
                 <span class="cuisine-badge">{{ restaurant.properties.other_tags.cuisine }}</span>
-            </div>
-
-            <div class="info-row">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span class="address-text">
-                {{ restaurant.properties.other_tags['addr:street'] }} {{ restaurant.properties.other_tags['addr:housenumber'] }}
-              </span>
-            </div>
-
-            @if (restaurant.properties.other_tags.website) {
-              <div class="info-row website">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <a [href]="restaurant.properties.other_tags.website" target="_blank" class="web-link" (click)="$event.stopPropagation()">
-                  Visit website
-                </a>
               </div>
-            }
+            
+            <div class="info-group">
+              <div class="info-row">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span class="address-text">
+                  {{ restaurant.properties.other_tags['addr:street'] }} {{ restaurant.properties.other_tags['addr:housenumber'] }}
+                </span>
+              </div>
+
+              @if (restaurant.properties.other_tags.website) {
+                <div class="info-row website">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  <a [href]="restaurant.properties.other_tags.website" target="_blank" class="web-link" (click)="$event.stopPropagation()">
+                    Visit website
+                  </a>
+                </div>
+              }
+            </div>
           </div>
 
           <div class="card-footer">
@@ -43,7 +46,7 @@
     <div class="empty-state">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       <h3>Restaurants not found</h3>
-      <p>Try enter different delivery address.</p>
+      <p>Try entering a different delivery address. Currently, only Poland is supported</p>
     </div>
   }
 </div>

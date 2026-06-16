@@ -21,11 +21,9 @@ export const routes: Routes = [
         canActivate: [addressGuard]
       },
       { 
-        path: 'menu/:id', 
+        path: 'menu', 
         component: RestaurantMenuComponent
       }
     ]
   },
-  { path: 'restaurant/:name', component: RestaurantMenuComponent },
-  { path: 'list', component: RestaurantListComponent },
 ];

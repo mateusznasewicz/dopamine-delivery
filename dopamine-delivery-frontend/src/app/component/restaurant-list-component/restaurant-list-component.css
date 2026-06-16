@@ -53,11 +53,18 @@
 }
 
 .card-body {
+  display: flex;
+  flex-direction: column;
   padding: 24px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   height: 150px;
+}
+
+
+.info-group {
+  margin-top: auto;
 }
 
 .title-row {
@@ -89,9 +96,8 @@
 .info-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   font-size: 0.95rem;
-  margin-bottom: 12px;
 }
 
 .info-row:last-child {
