@@ -1,9 +1,9 @@
-import { RestaurantTags } from "./restaurant-tags";
+import { RestaurantGeometry } from "./restaurant-geometry";
+import { RestaurantProperties } from "./restaurant-properties";
 
 export interface Restaurant {
-    id: number;
-    lat: number;
-    lon: number;
-    tags: RestaurantTags;
-    image_name: string;
+  id?: string;
+  type: 'Feature';
+  properties: RestaurantProperties;
+  geometry: RestaurantGeometry;
 }

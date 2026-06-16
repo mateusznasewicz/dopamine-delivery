@@ -3,6 +3,7 @@ import { RoutingService } from './routing-service';
 import { Address } from '../model/address';
 import { Restaurant } from '../model/restaurant';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { getLat, getLon } from '../model/restaurant-geometry';
 
 @Injectable({
   providedIn: 'root',
@@ -37,7 +38,7 @@ export class DeliveryService {
     }
 
     this.routingService.getRoute(
-      [origin.lon, origin.lat], 
+      [getLon(origin.geometry), getLat(origin.geometry)], 
       [+destination.lon, +destination.lat]
     ).subscribe({
       next: (coordinates) => {

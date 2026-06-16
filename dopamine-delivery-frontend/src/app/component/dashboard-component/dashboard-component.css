@@ -71,7 +71,7 @@
   width: calc(100vw - 48px);
 }
 
-.loading-state, .welcome-state {
+.loading-state {
   text-align: center;
   padding: 40px 10px;
   color: #495057;
@@ -83,12 +83,6 @@
   line-height: 1.5;
   color: #495057;
   margin: 0;
-}
-
-.welcome-icon {
-  font-size: 3.5rem;
-  margin-bottom: 20px;
-  animation: float 3s ease-in-out infinite;
 }
 
 .spinner {
@@ -104,12 +98,6 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
 }
 
 .toggle-btn {

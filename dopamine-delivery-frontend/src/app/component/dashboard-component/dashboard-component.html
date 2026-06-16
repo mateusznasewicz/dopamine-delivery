@@ -8,12 +8,12 @@
     <app-address-bar (addressSelected)="onAddressSelected($event)"></app-address-bar>
   </section>
 
-  <section #section class="content-section">
-    
-    @if(section.classList.contains('expand-vertical')){
-      <button class="toggle-btn" (click)="section.classList.toggle('expand-horizontal')">
-        @if (section.classList.contains('expand-horizontal')) {
-        <span class="icon">⬅️</span> Shrink section
+  <section class="content-section" [class.expand-vertical]="expandMenuVertical()" [class.expand-horizontal]="expandMenuHorizontal()">
+  
+    @if(expandMenuVertical()){
+      <button class="toggle-btn" (click)="this.restaurantStateService.updateExpandMenuHorizontal(!expandMenuHorizontal())">
+        @if (expandMenuHorizontal()) {
+          <span class="icon">⬅️</span> Shrink section
         } @else {
           <span class="icon">➡️</span> Expand section
         }
@@ -23,21 +23,11 @@
     @if (isLoading()) {
       <div class="loading-state">
         <div class="spinner"></div>
-        <p>Searching for resutarants in your area...</p>
-      </div>
-    } @else if (deliveryService.userAddress()) {
-      <div>
-        <app-restaurant-list-component
-        [restaurants]="restaurants()"
-        (expandMenu)="expandContentSection(['expand-vertical', 'expand-horizontal'])">
-        </app-restaurant-list-component>
+        <p>Searching for restaurants in your area...</p>
       </div>
     } @else {
-      <div class="welcome-state">
-        <div class="welcome-icon">🍕</div>
-        <p>Enter your delivery address above to discover the best restaurants in your area!</p>
-      </div>
+      <router-outlet></router-outlet>
     }
-  </section>
 
+  </section>
 </div>

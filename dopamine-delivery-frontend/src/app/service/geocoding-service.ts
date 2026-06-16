@@ -1,5 +1,5 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable, signal } from '@angular/core';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 import { Address } from '../model/address';
 import { Restaurant } from '../model/restaurant';
@@ -9,7 +9,7 @@ import { Restaurant } from '../model/restaurant';
 })
 export class GeocodingService {
   private http: HttpClient = inject(HttpClient)
-  
+
   searchAdress(query: string): Observable<Address[]> {
     if (!query || query.length < 3) {
       return of([]);
@@ -43,30 +43,23 @@ export class GeocodingService {
     );
   }
 
-  getRestaurantsNearby(lat: number, lon: number, radiusMeters: number = 2000): Observable<Restaurant[]> {
-    const overpassUrl = 'https://overpass-api.de/api/interpreter';
+  getRestaurantsNearby(lat: number, lon: number, radius: number = 2): Observable<Restaurant[]> {
+    const url = '/api/restaurant';
 
-    const query = `
-      [out:json];
-      node(around:${radiusMeters}, ${lat}, ${lon})[amenity=restaurant];
-      out 20;
-    `;
+    const params = new HttpParams()
+    .set('lng', lon)
+    .set('lat', lat)
+    .set('radius', radius)
+    .set('limit', 20)
 
-    const body = new URLSearchParams();
-    body.set('data', query);
-
-    return this.http.post<any>(overpassUrl, body.toString(), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }).pipe(
+    return this.http.get<any>(url, {params: params}).pipe(
       map(response => {
-        const elements = response.elements || [];
-    
-        return elements.filter((restaurant: Restaurant) => 
-          restaurant.tags && 
-          restaurant.tags['addr:street'] && 
-          restaurant.tags['addr:housenumber'] &&
-          restaurant.tags['cuisine'] &&
-          restaurant.tags.name
+        return response.filter((restaurant: Restaurant) => 
+          restaurant.properties.other_tags && 
+          restaurant.properties.other_tags['addr:street'] && 
+          restaurant.properties.other_tags['addr:housenumber'] &&
+          restaurant.properties.other_tags['cuisine'] &&
+          restaurant.properties.name
         );
       })
     );

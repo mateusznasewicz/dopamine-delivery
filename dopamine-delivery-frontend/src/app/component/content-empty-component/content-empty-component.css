@@ -1,0 +1,29 @@
+:host {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.welcome-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.welcome-state {
+  text-align: center;
+  padding: 40px 10px;
+  color: #495057;
+}
+
+p {
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #495057;
+  margin: 0;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}

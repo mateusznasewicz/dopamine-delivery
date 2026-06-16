@@ -6,6 +6,7 @@ services:
       - mongo-data:/data/db
       - ./db-init.sh:/docker-entrypoint-initdb.d/init.sh:ro
       - ./menu.json:/tmp/menu.json:ro
+      - ./restaurants.json:/tmp/restaurants.json:ro
     environment:
       - MONGO_INITDB_DATABASE=delivery_db
     networks:

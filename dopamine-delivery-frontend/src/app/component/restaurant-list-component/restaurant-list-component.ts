@@ -1,8 +1,9 @@
-import { Component, inject, input, output} from '@angular/core';
+import { Component, effect, inject, input, output} from '@angular/core';
 import { Restaurant } from '../../model/restaurant';
 import { DeliveryService } from '../../service/delivery-service';
 import { NgStyle } from '@angular/common';
 import { MenuService } from '../../service/menu-service';
+import { RestaurantStateService } from '../../service/restaurant-state-service';
 
 @Component({
   selector: 'app-restaurant-list-component',
@@ -14,8 +15,8 @@ export class RestaurantListComponent{
 
   private deliveryService = inject(DeliveryService);
   private menuService = inject(MenuService);
-  restaurants = input<Restaurant[]>([]);
-  expandMenu = output<void>();
+  private restaurantStateservice = inject(RestaurantStateService);
+  restaurants = this.restaurantStateservice.restaurants;
 
   startDelivery(restaurant: Restaurant) {
     console.log('start_delivery');
@@ -23,9 +24,9 @@ export class RestaurantListComponent{
     this.deliveryService.startDelivery();
   }
 
-    viewMenu(restaurant: Restaurant) {
-      const cuisineTags = restaurant.tags.cuisine!.split(';');
-      cuisineTags.forEach(tag => this.menuService.getRestaurantMenu(tag).subscribe());
-      this.expandMenu.emit();
-    }
+  viewMenu(restaurant: Restaurant) {
+    // // const cuisineTags = restaurant.tags.cuisine!.split(';');
+    // // cuisineTags.forEach(tag => this.menuService.getRestaurantMenu(tag).subscribe());
+    this.restaurantStateservice.updateExpandMenuHorizontal(true);
+  }
 }
