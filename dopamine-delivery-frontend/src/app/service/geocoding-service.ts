@@ -49,7 +49,7 @@ export class GeocodingService {
     const query = `
       [out:json];
       node(around:${radiusMeters}, ${lat}, ${lon})[amenity=restaurant];
-      out;
+      out 20;
     `;
 
     const body = new URLSearchParams();

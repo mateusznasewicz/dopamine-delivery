@@ -5,4 +5,5 @@ export interface Restaurant {
     lat: number;
     lon: number;
     tags: RestaurantTags;
+    image_name: string;
 }

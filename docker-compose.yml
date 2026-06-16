@@ -17,11 +17,13 @@ services:
       dockerfile: Dockerfile
     container_name: delivery-backend
     environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/delivery_db
+      - SPRING_MONGODB_URI=mongodb://mongodb:27017/delivery_db
       - DISH_IMAGES_PATH=/app/images/
       - SERVER_PORT=8080
     volumes:
       - ./images:/app/images
+    ports:
+      - "8080:8080"
     depends_on:
       - mongodb
     networks:

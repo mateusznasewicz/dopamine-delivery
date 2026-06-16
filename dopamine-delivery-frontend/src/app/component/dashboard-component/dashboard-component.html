@@ -15,7 +15,7 @@
         <p>Searching for resutarants in your area...</p>
       </div>
     } @else if (deliveryService.userAddress()) {
-      <div class="fade-in-results">
+      <div>
         <app-restaurant-list-component [restaurants]="restaurants()"></app-restaurant-list-component>
       </div>
     } @else {

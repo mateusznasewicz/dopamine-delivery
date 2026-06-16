@@ -49,8 +49,8 @@
   position: absolute;
   top: 100px;
   left: 24px;
-  bottom: 24px;
   width: 400px;
+  height: 325px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(8px);
   border-radius: 16px;
@@ -59,7 +59,16 @@
   overflow-y: auto;
   padding: 20px;
   box-sizing: border-box;
-  transition: all 0.3s ease;
+  transition: all 0.5s ease;
+  color: #495057;
+}
+
+.expand-vertical {
+  height: calc(100vh - 124px);
+}
+
+.expand-horizontal {
+  width: calc(100vw - 48px);
 }
 
 .loading-state, .welcome-state {
