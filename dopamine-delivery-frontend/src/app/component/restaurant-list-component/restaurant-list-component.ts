@@ -5,6 +5,8 @@ import { NgStyle } from '@angular/common';
 import { MenuService } from '../../service/menu-service';
 import { RestaurantStateService } from '../../service/restaurant-state-service';
 import { Router } from '@angular/router';
+import { MenuItem } from '../../model/menu-item';
+import { forkJoin, map } from 'rxjs';
 
 @Component({
   selector: 'app-restaurant-list-component',
@@ -21,15 +23,30 @@ export class RestaurantListComponent{
   restaurants = this.restaurantStateservice.restaurants;
 
   startDelivery(restaurant: Restaurant) {
-    console.log('start_delivery');
     this.deliveryService.setRestaurant(restaurant);
     this.deliveryService.startDelivery();
   }
 
   viewMenu(restaurant: Restaurant) {
-    // // const cuisineTags = restaurant.tags.cuisine!.split(';');
-    // // cuisineTags.forEach(tag => this.menuService.getRestaurantMenu(tag).subscribe());
-    this.restaurantStateservice.updateExpandMenuHorizontal(true);
-    this.router.navigate(['/dashboard', 'restaurants']);
+    const menu: { [key: string]: MenuItem[] } = {};
+    const cuisineTags = restaurant.properties.other_tags.cuisine!.split(';');
+
+    const requests = cuisineTags.map(tag => 
+      this.menuService.getRestaurantMenu(tag).pipe(
+        map((items: MenuItem[]) => ({ tag, items }))
+      )
+    );
+
+    forkJoin(requests).subscribe(results => {      
+      results.forEach(res => {
+        if(res.items.length > 0){
+          menu[res.tag] = res.items;
+        }
+      });
+
+      this.restaurantStateservice.menu.set(menu);
+      this.restaurantStateservice.updateExpandMenuHorizontal(true);
+      this.router.navigate(['/dashboard', 'menu']);
+    });
   }
 }

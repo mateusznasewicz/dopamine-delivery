@@ -3,7 +3,8 @@ import { DashboardComponent } from './component/dashboard-component/dashboard-co
 import { RestaurantMenuComponent } from './component/restaurant-menu-component/restaurant-menu-component';
 import { RestaurantListComponent } from './component/restaurant-list-component/restaurant-list-component';
 import { ContentEmptyComponent } from './component/content-empty-component/content-empty-component';
-import { addressGuard } from './guard/address-guard-guard';
+import { addressGuard } from './guard/address-guard';
+import { menuGuard } from './guard/menu-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -22,7 +23,8 @@ export const routes: Routes = [
       },
       { 
         path: 'menu', 
-        component: RestaurantMenuComponent
+        component: RestaurantMenuComponent,
+        canActivate: [menuGuard]
       }
     ]
   },

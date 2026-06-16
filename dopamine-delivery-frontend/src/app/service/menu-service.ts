@@ -18,8 +18,6 @@ export class MenuService {
 
   getRestaurantMenu(cuisine: string): Observable<MenuItem[]> {
     const params = new HttpParams().set('cuisine', cuisine);
-    return this.http.get<MenuItem[]>(this.endpoint, {params: params}).pipe(
-      tap(data => console.log(data))
-    );
+    return this.http.get<MenuItem[]>(this.endpoint, {params: params});
   }
 }
