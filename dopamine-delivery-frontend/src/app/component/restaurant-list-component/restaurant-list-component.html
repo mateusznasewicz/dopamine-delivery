@@ -7,7 +7,7 @@
   @if (restaurants().length > 0) {
     <div class="restaurant-grid">
       @for (restaurant of restaurants(); track restaurant.id) {
-        <div class="restaurant-card fade-in-down" (click)="startDelivery(restaurant)">
+        <div class="restaurant-card fade-in-down" (click)="viewMenu(restaurant)">
           
             <div class="card-body" [ngStyle]="{'background-image': 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url(\'/images/' + restaurant.image_name.replace('\'', '%27') + '\')'}">            <div class="title-row">
               <h3 class="restaurant-name">{{ restaurant.tags.name }}</h3>

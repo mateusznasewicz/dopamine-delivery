@@ -8,7 +8,18 @@
     <app-address-bar (addressSelected)="onAddressSelected($event)"></app-address-bar>
   </section>
 
-  <section class="content-section">
+  <section #section class="content-section">
+    
+    @if(section.classList.contains('expand-vertical')){
+      <button class="toggle-btn" (click)="section.classList.toggle('expand-horizontal')">
+        @if (section.classList.contains('expand-horizontal')) {
+        <span class="icon">⬅️</span> Shrink section
+        } @else {
+          <span class="icon">➡️</span> Expand section
+        }
+      </button>
+    }
+    
     @if (isLoading()) {
       <div class="loading-state">
         <div class="spinner"></div>
@@ -16,7 +27,10 @@
       </div>
     } @else if (deliveryService.userAddress()) {
       <div>
-        <app-restaurant-list-component [restaurants]="restaurants()"></app-restaurant-list-component>
+        <app-restaurant-list-component
+        [restaurants]="restaurants()"
+        (expandMenu)="expandContentSection(['expand-vertical', 'expand-horizontal'])">
+        </app-restaurant-list-component>
       </div>
     } @else {
       <div class="welcome-state">

@@ -24,6 +24,7 @@ export class DashboardComponent {
 
   restaurants = signal<Restaurant[]>([]);
   isLoading = signal<boolean>(false);
+  isExpanded = signal<boolean>(false);
 
   onAddressSelected(address: Address) {
     this.shrinkContentSection(['expand-vertical', 'expand-horizontal']);
@@ -62,7 +63,7 @@ export class DashboardComponent {
       });
   }
 
-  private expandContentSection(classes: string[]): void {
+  expandContentSection(classes: string[]): void {
     const contentSection = document.querySelector('.content-section');
     classes.forEach( c => contentSection?.classList.add(c) );
   }
