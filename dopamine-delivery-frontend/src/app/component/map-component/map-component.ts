@@ -33,15 +33,15 @@ export class MapComponent implements OnInit, OnDestroy{
 
   ngOnInit(): void {
     this.initMap()
-    this.routeSubscription = this.deliveryService.routeCoordinates$.subscribe(points => {
-      const lat = points[0][1];
-      const lon = points[0][0];
+    // this.routeSubscription = this.deliveryService.routeCoordinates$.subscribe(points => {
+    //   const lat = points[0][1];
+    //   const lon = points[0][0];
 
-      this.centerMapOn(lat, lon);
-      this.setupRouteLayer(points)
-      this.setupCarLayer(points[0], points[1]);
-      this.animateRoute(points);
-    });  
+    //   this.centerMapOn(lat, lon);
+    //   this.setupRouteLayer(points)
+    //   this.setupCarLayer(points[0], points[1]);
+    //   this.animateRoute(points);
+    // });  
   }
 
   private initMap(): void {
@@ -58,22 +58,6 @@ export class MapComponent implements OnInit, OnDestroy{
     this.map.on('load', () => {
       this.setup3dBuidlingsLayer();
     });
-  }
-
-  private async animateRoute(points: [number, number][]): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    this.isRouteActive.set(true);
-    this.isFollowing.set(true);
-
-    for (let i = 0; i < points.length - 1; i++) {
-      const start = points[i];
-      const end = points[i + 1];
-
-      this.rotateCarTowards(start, end);
-      await this.moveCar(start, end, 50);
-    }
-    this.isRouteActive.set(false);
-    this.isFollowing.set(false);
   }
 
   private moveCar(start: [number, number], end: [number, number], speed: number): Promise<void> {

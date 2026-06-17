@@ -24,7 +24,7 @@ export class RestaurantListComponent{
 
   startDelivery(restaurant: Restaurant) {
     this.deliveryService.setRestaurant(restaurant);
-    this.deliveryService.startDelivery();
+    // this.deliveryService.startDelivery();
   }
 
   viewMenu(restaurant: Restaurant) {
