@@ -6,6 +6,7 @@ import { ContentEmptyComponent } from './component/content-empty-component/conte
 import { addressGuard } from './guard/address-guard';
 import { menuGuard } from './guard/menu-guard';
 import { PaymentComponent } from './component/payment-component/payment-component';
+import { paymentGuard } from './guard/payment-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -29,7 +30,8 @@ export const routes: Routes = [
       },
       {
         path: 'payment',
-        component: PaymentComponent
+        component: PaymentComponent,
+        canActivate: [paymentGuard]
       }
     ]
   },
