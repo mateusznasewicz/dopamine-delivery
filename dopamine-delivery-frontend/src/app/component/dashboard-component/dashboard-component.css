@@ -67,7 +67,9 @@
 }
 
 .expand-horizontal {
-  max-width: calc(100vw - 48px);
+  max-width: 1600px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .loading-state {
