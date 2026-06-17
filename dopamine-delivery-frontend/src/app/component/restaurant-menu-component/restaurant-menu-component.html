@@ -1,11 +1,11 @@
 <div class="menu-container">
-
-    <header class="menu-header">
-        <button class="back-btn" (click)="goBack()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="back-icon"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-            Go Back to Restaurants
-        </button>
-    </header>
+  <header class="menu-header">
+    <app-cart-icon-component></app-cart-icon-component>
+    <button class="back-btn" (click)="goBack()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="back-icon"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Go Back to Restaurants
+    </button>
+  </header>
   
   @if (menuCategories().length === 0) {
     <div class="menu-empty">
@@ -40,7 +40,7 @@
                   {{ item.description || 'No description available for this dish.' }}
                 </p>
 
-                <button class="add-to-cart-btn">
+                <button class="add-to-cart-btn" (click)="this.cartStateService.addToCart(item)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
                   Add to Cart
                 </button>

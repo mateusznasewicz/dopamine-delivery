@@ -2,9 +2,12 @@
   display: block;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: #f8f9fa;
-  max-height: 100%;
-  padding: 40px 20px;
   color: #fff;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .container {
@@ -30,8 +33,14 @@
 
 .restaurant-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
+}
+
+@media screen and (min-width: 769px) {
+  .restaurant-grid {
+    padding-right: 32px; 
+  }
 }
 
 .restaurant-card {
@@ -45,6 +54,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
   border: 1px solid #e9ecef;
+  width: 100%;
 }
 
 .restaurant-card:hover {

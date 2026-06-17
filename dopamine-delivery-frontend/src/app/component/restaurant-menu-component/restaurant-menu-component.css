@@ -1,10 +1,14 @@
 :host {
   display: block;
   width: 100%;
-  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .menu-container {
+  position: relative;
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
@@ -27,8 +31,14 @@
 
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
+}
+
+@media screen and (min-width: 769px) {
+  .menu-grid {
+    padding-right: 32px; 
+  }
 }
 
 .menu-item-card {
@@ -144,7 +154,12 @@
 }
 
 .menu-header {
-  margin-bottom: 32px;
+  position: sticky;
+  top: 15px;
+  left: 0;
+  z-index: 999;
+  gap: 16px;
+  margin-bottom: 16px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
