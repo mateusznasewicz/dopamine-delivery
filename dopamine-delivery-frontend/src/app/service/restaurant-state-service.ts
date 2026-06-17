@@ -39,7 +39,6 @@ export class RestaurantStateService {
     this._expandMenuHorizontal.set(value);
   }
   updateExpandMenuVertical(value: boolean){
-    if(this.isMobile()) return;
     this._expandMenuVertical.set(value);
   }
   updateHideMenu(value: boolean){
