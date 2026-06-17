@@ -3,6 +3,7 @@ import { CartStateService } from '../../service/cart-state-service';
 import { CartItem } from '../../model/cart-item';
 import { CurrencyPipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { PaymentService } from '../../service/payment-service';
 
 @Component({
   selector: 'app-payment-component',
@@ -14,6 +15,7 @@ export class PaymentComponent {
 
   router = inject(Router);
   cartStateService = inject(CartStateService);
+  paymentService = inject(PaymentService);
   cart = this.cartStateService.cart;
 
   cartItems = computed<CartItem[]>(() => {
@@ -47,7 +49,7 @@ export class PaymentComponent {
   }
 
   proceedToPayment() {
-    throw new Error('Method not implemented.');
+    this.paymentService.proceedToPayment(this.cartItems());
   }
 
   removeItem(itemName: string) {

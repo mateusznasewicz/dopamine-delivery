@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { AddressBar } from '../address-bar/address-bar';
 import { DeliveryService } from '../../service/delivery-service';
 import { Address } from '../../model/address';
@@ -16,7 +16,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
   templateUrl: './dashboard-component.html',
   styleUrl: './dashboard-component.css',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   router = inject(Router);
   private destroyRef = inject(DestroyRef);
   deliveryService = inject(DeliveryService);
@@ -29,6 +29,14 @@ export class DashboardComponent {
   expandMenuVertical = this.restaurantStateService.expandMenuVertical;
   expandMenuHorizontal = this.restaurantStateService.expandMenuHorizontal;
   isMenuHidden = this.restaurantStateService.hideMenu;
+
+  ngOnInit(): void {
+    const currentUrl = this.router.url;
+    if(currentUrl === '/dashboard'){
+      this.restaurantStateService.updateExpandMenuVertical(false);
+      this.restaurantStateService.updateExpandMenuHorizontal(false);
+    }
+  }
 
   onAddressSelected(address: Address) {
     this.restaurantStateService.updateExpandMenuHorizontal(false);
