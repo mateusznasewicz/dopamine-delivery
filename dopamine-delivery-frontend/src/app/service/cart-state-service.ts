@@ -11,4 +11,8 @@ export class CartStateService {
   addToCart(item: MenuItem){
     this._cart.update(items => [...items, item]);
   }
+
+  setCart(cart: MenuItem[]){
+    this._cart.set(cart);
+  }
 }

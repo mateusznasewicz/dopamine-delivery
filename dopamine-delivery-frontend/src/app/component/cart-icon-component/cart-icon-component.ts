@@ -29,6 +29,6 @@ export class CartIconComponent {
   }
   
   openCart() {
-    this.router.navigate(['/dashboard', 'cart']);
+    this.router.navigate(['/dashboard', 'payment']);
   }
 }

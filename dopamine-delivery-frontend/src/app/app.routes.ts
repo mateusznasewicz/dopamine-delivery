@@ -5,7 +5,7 @@ import { RestaurantListComponent } from './component/restaurant-list-component/r
 import { ContentEmptyComponent } from './component/content-empty-component/content-empty-component';
 import { addressGuard } from './guard/address-guard';
 import { menuGuard } from './guard/menu-guard';
-import { CartComponent } from './component/cart-component/cart-component';
+import { PaymentComponent } from './component/payment-component/payment-component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -28,8 +28,8 @@ export const routes: Routes = [
         canActivate: [menuGuard]
       },
       {
-        path: 'cart',
-        component: CartComponent
+        path: 'payment',
+        component: PaymentComponent
       }
     ]
   },

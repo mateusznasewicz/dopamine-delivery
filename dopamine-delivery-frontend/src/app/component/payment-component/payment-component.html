@@ -1,1 +1,82 @@
-<p>payment-component works!</p>
+<button class="receipt-back-btn fade-in-down" (click)="goBack()">
+  <span class="ticket-notch notch-left"></span>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="back-arrow">
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+  <span class="ticket-text">RETURN TO MENU</span>
+  <span class="ticket-id">#0042</span>
+  <span class="ticket-notch notch-right"></span>
+</button>
+
+<div class="receipt-container fade-in-down">
+  <div class="receipt-header">
+    <h2 class="receipt-title">YOUR RECEIPT</h2>
+    <p class="receipt-subtitle">Thank you for your order!</p>
+    <div class="dashed-line"></div>
+  </div>
+
+  <div class="receipt-body">
+    @if (cartItems().length === 0) {
+      <div class="empty-receipt">
+        <p>Your cart is empty</p>
+        <p class="empty-hint">Add some delicious food to start</p>
+      </div>
+    } @else {
+      @for (item of cartItems(); track item.name) {
+        <div class="receipt-row">
+
+            <button class="receipt-delete-btn" 
+                (click)="removeItem(item.name)" 
+                title="Remove one item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+
+          <div class="item-name-group">
+            <span class="item-name">{{ item.name }}</span>
+            @if (item.quantity > 1) {
+              <span class="item-quantity">x{{ item.quantity }}</span>
+            }
+          </div>
+          <div class="item-price">
+            {{ item.price * item.quantity | currency:'PLN':'symbol':'1.2-2' }}
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="receipt-footer">
+    <div class="dashed-line"></div>
+    
+    <div class="receipt-row summary-row">
+      <span>Subtotal</span>
+      <span>{{ totalAmount() | currency:'PLN':'symbol':'1.2-2' }}</span>
+    </div>
+    
+    <div class="receipt-row summary-row tax-row">
+      <span>Incl. VAT (8%)</span>
+      <span>{{ (totalAmount() * 0.08) | currency:'PLN':'symbol':'1.2-2' }}</span>
+    </div>
+
+    <div class="double-dashed-line"></div>
+
+    <div class="receipt-row total-row">
+      <span>TOTAL DUE</span>
+      <span class="final-price">{{ totalAmount() | currency:'PLN':'symbol':'1.2-2' }}</span>
+    </div>
+    <button class="pay-stamp-btn" (click)="proceedToPayment()">
+      <span class="stamp-text">APPROVED & PAY</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="stamp-icon">
+        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+        <line x1="12" y1="4" x2="12" y2="20"></line>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+      </svg>
+    </button>
+  </div>
+
+  <div class="receipt-zig-zag"></div>
+</div>
