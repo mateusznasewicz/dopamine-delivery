@@ -124,7 +124,6 @@
 
   transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  margin-left: 10px;
 }
 
 .toggle-btn:hover {
@@ -149,4 +148,72 @@
     margin-left: auto;
     margin-right: auto;
   }
+}
+
+.main-toggle-btn {
+  position: sticky;
+  top:0; 
+  left:0;
+  margin-bottom: 12px;
+  
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  
+  background: #ff385c;
+  color: #ffffff;
+  
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-toggle-btn:hover {
+  transform: scale(1.05);
+  background: #e0314f;
+}
+
+.main-toggle-btn.is-hidden {
+  background: #111827; 
+}
+
+.main-toggle-btn.is-hidden:hover {
+  background: #1f2937;
+}
+
+.inner-menu {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+
+  width: 100%;
+  height: 95%;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+
+.content-section.hide-menu {
+  max-width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.content-section.hide-menu .inner-menu {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.content-section.hide-menu .main-toggle-btn {
+  top: 0;
+  left: 0;
+  background: #111827;
 }

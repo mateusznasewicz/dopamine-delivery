@@ -11,10 +11,12 @@ export class RestaurantStateService {
   private _restaurants = signal<Restaurant[]>([]);
   private _expandMenuHorizontal = signal<boolean>(false);
   private _expandMenuVertical = signal<boolean>(false);
+  private _hideMenu = signal<boolean>(false);
 
   readonly restaurants = this._restaurants.asReadonly();
   readonly expandMenuHorizontal = this._expandMenuHorizontal.asReadonly();
   readonly expandMenuVertical = this._expandMenuVertical.asReadonly();
+  readonly hideMenu = this._hideMenu.asReadonly();
   menu = signal<{[key: string]: MenuItem[]}>({})
   
   private breakpointObserver = inject(BreakpointObserver);
@@ -39,5 +41,8 @@ export class RestaurantStateService {
   updateExpandMenuVertical(value: boolean){
     if(this.isMobile()) return;
     this._expandMenuVertical.set(value);
+  }
+  updateHideMenu(value: boolean){
+    this._hideMenu.set(value);
   }
 }

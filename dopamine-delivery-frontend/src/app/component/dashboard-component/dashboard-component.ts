@@ -28,6 +28,7 @@ export class DashboardComponent {
   isMobile = this.restaurantStateService.isMobile;
   expandMenuVertical = this.restaurantStateService.expandMenuVertical;
   expandMenuHorizontal = this.restaurantStateService.expandMenuHorizontal;
+  isMenuHidden = this.restaurantStateService.hideMenu;
 
   onAddressSelected(address: Address) {
     this.restaurantStateService.updateExpandMenuHorizontal(false);
