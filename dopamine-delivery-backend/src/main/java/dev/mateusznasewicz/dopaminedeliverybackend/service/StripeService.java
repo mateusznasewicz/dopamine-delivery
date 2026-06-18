@@ -26,7 +26,12 @@ public class StripeService {
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.BLIK)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setSuccessUrl("http://dopamine-delivery.mateusznasewicz.dev/dashboard/paymentSuccess")
-                .setCancelUrl("http://dopamine-delivery.mateusznasewicz.dev/dashboard/cart");
+                .setCancelUrl("http://dopamine-delivery.mateusznasewicz.dev/dashboard/cart")
+                .putMetadata("guest_id", paymentRequest.guestID())
+                .putMetadata("restaurant_lat", String.valueOf(paymentRequest.restaurantCoordinates().lat()))
+                .putMetadata("restaurant_lng", String.valueOf(paymentRequest.restaurantCoordinates().lng()))
+                .putMetadata("delivery_lat", String.valueOf(paymentRequest.deliveryCoordinates().lat()))
+                .putMetadata("delivery_lng", String.valueOf(paymentRequest.deliveryCoordinates().lng()));
 
         for (CartItemDTO item : paymentRequest.items()) {
             long amountInGrosz = Math.round(item.price() * 100);

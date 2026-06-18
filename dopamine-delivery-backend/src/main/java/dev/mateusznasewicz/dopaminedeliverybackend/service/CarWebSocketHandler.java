@@ -1,5 +1,6 @@
 package dev.mateusznasewicz.dopaminedeliverybackend.service;
 
+import dev.mateusznasewicz.dopaminedeliverybackend.dto.CarStateDTO;
 import dev.mateusznasewicz.dopaminedeliverybackend.model.Car;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,10 +35,10 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
         sessions.remove(session);
     }
 
-    public void broadcastCarList(Collection<Car> cars){
+    public void broadcastCarList(Collection<CarStateDTO> cars){
         String jsonMessage = objectMapper.writeValueAsString(cars);
         TextMessage message = new TextMessage(jsonMessage);
-
+        log.info("Broadcasting message: {}", jsonMessage);
         for(WebSocketSession session: sessions){
             if(session.isOpen()) {
                 try {

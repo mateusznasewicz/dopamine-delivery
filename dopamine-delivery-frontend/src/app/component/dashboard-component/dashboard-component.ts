@@ -41,6 +41,7 @@ export class DashboardComponent implements OnInit {
   onAddressSelected(address: Address) {
     this.restaurantStateService.updateExpandMenuHorizontal(false);
     this.restaurantStateService.updateExpandMenuVertical(false);
+    this.restaurantStateService.updateHideMenu(false);
     this.deliveryService.setUserAddress(address);
     this.isLoading.set(true);
 

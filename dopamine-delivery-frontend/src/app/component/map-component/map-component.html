@@ -1,13 +1,25 @@
 <div class="map-wrapper">
   <div #mapContainer class="map-container"></div>
 
-  @if (isRouteActive()) {
-    <button class="follow-btn" (click)="toggleFollow()" [class.active]="isFollowing()">
-      @if (isFollowing()) {
-        <span class="icon">🔒</span> Unfollow Car
-      } @else {
-        <span class="icon">🎥</span> Follow Car
-      }
-    </button>
+  @if (cars().length > 0) {
+    <div class="car-controls-panel">
+      
+      <button class="nav-btn" (click)="navigateCar('prev')">
+        ◀
+      </button>
+
+      <button class="follow-btn" (click)="toggleFollow()" [class.active]="selectedCar()">
+        @if (isFollowing()) {
+          <span class="icon">🔒</span> Following: Car{{ selectedCar()?.id }}...
+        } @else {
+          <span class="icon">🎥</span> Follow this car
+        }
+      </button>
+
+      <button class="nav-btn" (click)="navigateCar('next')">
+        ▶
+      </button>
+
+    </div>
   }
 </div>

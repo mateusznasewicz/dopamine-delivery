@@ -1,9 +1,10 @@
-import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { AddLayerObject, FlyToOptions, Map, MercatorCoordinate } from 'maplibre-gl';
-import { Subscription } from 'rxjs';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DeliveryService } from '../../service/delivery-service';
+import { WebSocketService } from '../../service/web-socket-service';
+import { CarState } from '../../model/car-state';
+import { GuestService } from '../../service/guest-service';
 
 @Component({
   selector: 'app-map-component',
@@ -12,36 +13,43 @@ import { DeliveryService } from '../../service/delivery-service';
   styleUrl: './map-component.css',
 })
 export class MapComponent implements OnInit, OnDestroy{
+
   @ViewChild('mapContainer', { static: true }) mapContainer!: ElementRef<HTMLDivElement>;
   private map!: Map;
 
-  private routeSubscription!: Subscription;
-  private deliveryService = inject(DeliveryService);
-  isFollowing = signal<boolean>(true);
-  isRouteActive = signal<boolean>(false);
+  private guestService = inject(GuestService);
+  private webSocketService = inject(WebSocketService);
+  
+  selectedCar = signal<CarState | null>(null);
+  isFollowing = signal<boolean>(false);
+  private isAnimationLoopRunning = false;
 
-  private carModel: THREE.Group | null = null;
-  private carTransform = {
-    translateX: 0,
-    translateY: 0,
-    translateZ: 0,
-    rotateX: Math.PI / 2,
-    rotateY: Math.PI,
-    rotateZ: 0,
-    scale: 0
-  };
+  private car3DModel: THREE.Group | null = null;
+  cars = this.webSocketService.cars
 
   ngOnInit(): void {
-    this.initMap()
-    // this.routeSubscription = this.deliveryService.routeCoordinates$.subscribe(points => {
-    //   const lat = points[0][1];
-    //   const lon = points[0][0];
+    this.initMap();
+  }
 
-    //   this.centerMapOn(lat, lon);
-    //   this.setupRouteLayer(points)
-    //   this.setupCarLayer(points[0], points[1]);
-    //   this.animateRoute(points);
-    // });  
+  constructor() {
+    effect(() => {
+      const activeCars = this.cars();
+
+      if (activeCars.length > 0 && !this.isAnimationLoopRunning) {
+        this.isAnimationLoopRunning = true;
+        this.drawCars();
+      }
+
+      if (activeCars.length > 0 && !this.selectedCar()) {
+        this.selectedCar.set(activeCars[0]);
+        this.toggleFollow();
+      }
+    });
+
+  }
+
+  toggleFollow() {
+    this.isFollowing.update(value => !value);
   }
 
   private initMap(): void {
@@ -57,55 +65,79 @@ export class MapComponent implements OnInit, OnDestroy{
 
     this.map.on('load', () => {
       this.setup3dBuidlingsLayer();
+      this.setupCarLayer();
     });
   }
 
-  private moveCar(start: [number, number], end: [number, number], speed: number): Promise<void> {
-    const speedMS = speed / 3.6;
-    const distanceInMeters = this.calculateDistance(start, end);
-    const duration = (distanceInMeters / speedMS) * 1000;
+  navigateCar(direction: 'next' | 'prev'): void {
+    const activeCars = this.cars();
 
-    return new Promise((resolve) => {
-      const startTime = performance.now();
+    const currentId = this.selectedCar()!.id;
+    const currentIndex = activeCars.findIndex(car => car.id === currentId);
+    
+    let newIndex = currentIndex;
 
-      const updatePosition = (currentTime: number) => {
-        const elapsedTime = currentTime - startTime;
-        const progress = Math.min(elapsedTime / duration, 1);
+    if (direction === 'next') {
+      newIndex = (currentIndex + 1) % activeCars.length;
+    } else {
+      newIndex = (currentIndex - 1 + activeCars.length) % activeCars.length;
+    }
 
-        const currentLng = start[0] + (end[0] - start[0]) * progress;
-        const currentLat = start[1] + (end[1] - start[1]) * progress;
-        if (this.isFollowing()) {
-          this.followCar(currentLng, currentLat);
+    const newCar = activeCars[newIndex];
+    if (newCar) {
+      this.selectedCar.set(newCar);
+      this.centerMapOn(newCar.localLat, newCar.localLng, newCar.rotationZ);
+    }
+  }
+
+  private drawCars(){
+    let lastFrameTime = performance.now();
+
+    const drawLoop = (currentTime: number) => {
+      const elapsedTime = (currentTime - lastFrameTime) / 1000;
+      
+      if (!this.cars() || this.cars().length === 0) {
+        this.isAnimationLoopRunning = false;
+        return;
+      }
+
+      this.cars().forEach(car => {
+        const desync  = this.calculateDistance([car.localLng, car.localLat], [car.lng, car.lat]);
+        if(desync > 30){
+          car.localLat = car.lat;
+          car.localLng = car.lng;
+          return;
         }
 
-        const currentAsMercator = MercatorCoordinate.fromLngLat([currentLng, currentLat], 0);
-
-        this.carTransform.translateX = currentAsMercator.x;
-        this.carTransform.translateY = currentAsMercator.y;
-        this.carTransform.translateZ = currentAsMercator.z;
-
-        this.map.triggerRepaint();
-
-        if (progress < 1) {
-          requestAnimationFrame(updatePosition);
+        const start: [number,number] = [car.localLng, car.localLat];
+        const end: [number,number] = [car.destinationLng, car.destinationLat];
+        const remainingDistance = this.calculateDistance(start, end);
+        const speedMS = car.speed / 3.6;
+        const distanceTraveledInThisFrame = speedMS * elapsedTime;
+        
+        if(distanceTraveledInThisFrame >= remainingDistance ) {
+          car.localLng = car.destinationLng;
+          car.localLat = car.destinationLat;
         } else {
-          resolve();
+          const progress = Math.min(distanceTraveledInThisFrame / remainingDistance, 1);
+          car.localLng = car.localLng + (car.destinationLng - car.localLng) * progress;
+          car.localLat = car.localLat + (car.destinationLat - car.localLat) * progress;
         }
-      };
+        
+        if (this.isFollowing() && car.id == this.selectedCar()!.id) {
+          this.followCar(car.localLng, car.localLat, car.rotationZ);
+        }
 
-      requestAnimationFrame(updatePosition);
-    });
-  }
+      });
+      
+      lastFrameTime = currentTime;
+      if (this.map) {
+        this.map.triggerRepaint();
+      }
+      requestAnimationFrame(drawLoop);
+    }
 
-  private rotateCarTowards(start: [number, number], end: [number, number]): void {
-    const startM = MercatorCoordinate.fromLngLat(start, 0);
-    const endM = MercatorCoordinate.fromLngLat(end, 0);
-
-    const dx = endM.x - startM.x;
-    const dy = endM.y - startM.y;
-
-    const angleRad = Math.atan2(dx, dy);
-    this.carTransform.rotateZ = angleRad - Math.PI;
+    requestAnimationFrame(drawLoop);
   }
 
   private setup3dBuidlingsLayer(): void {
@@ -160,16 +192,7 @@ export class MapComponent implements OnInit, OnDestroy{
     );
   }
 
-  private setupCarLayer(location: [number, number], direction: [number, number]): void {
-    const modelAsMercator = MercatorCoordinate.fromLngLat(location, 0);
-
-    this.carTransform.translateX = modelAsMercator.x;
-    this.carTransform.translateY = modelAsMercator.y;
-    this.carTransform.translateZ = modelAsMercator.z;
-    this.carTransform.scale = modelAsMercator.meterInMercatorCoordinateUnits() * 5;
-
-    this.rotateCarTowards(location, direction);
-
+  private setupCarLayer(): void {
     let camera: THREE.Camera;
     let scene: THREE.Scene;
     let renderer: THREE.WebGLRenderer;
@@ -194,8 +217,7 @@ export class MapComponent implements OnInit, OnDestroy{
         loader.load(
           'sedan-sports.glb',
           (gltf) => {
-            scene.add(gltf.scene);
-            
+            this.car3DModel = gltf.scene;
             this.map.triggerRepaint();
           }
         );
@@ -210,23 +232,30 @@ export class MapComponent implements OnInit, OnDestroy{
       },
 
       render: (gl, args) => {
-        const rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), this.carTransform.rotateX);
-        const rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), this.carTransform.rotateY);
-        const rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), this.carTransform.rotateZ);
-
-        const m = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
-        const l = new THREE.Matrix4()
-          .makeTranslation(this.carTransform.translateX, this.carTransform.translateY, this.carTransform.translateZ)
-          .scale(new THREE.Vector3(this.carTransform.scale, -this.carTransform.scale, this.carTransform.scale))
-          .multiply(rotationZ)
-          .multiply(rotationX)
-          .multiply(rotationY);
-
-        camera.projectionMatrix = m.multiply(l);
-        
+        if (!this.car3DModel) return;
         renderer.resetState();
-        renderer.render(scene, camera);
-        this.map.triggerRepaint();
+
+        this.cars().forEach( car => {
+          const mercator = MercatorCoordinate.fromLngLat([car.localLng, car.localLat], 0);
+          const scale = mercator.meterInMercatorCoordinateUnits() * 5;
+
+          const rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+          const rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), Math.PI);
+          const rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), car.rotationZ);
+
+          const m = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
+          const l = new THREE.Matrix4()
+            .makeTranslation(mercator.x, mercator.y, mercator.z)
+            .scale(new THREE.Vector3(scale, -scale, scale))
+            .multiply(rotationZ)
+            .multiply(rotationX)
+            .multiply(rotationY);
+    
+          camera.projectionMatrix = m.multiply(l);
+          scene.add(this.car3DModel!);
+          renderer.render(scene, camera);
+          scene.remove(this.car3DModel!);
+        });
       }
     };
 
@@ -270,14 +299,14 @@ export class MapComponent implements OnInit, OnDestroy{
     });
   }
 
-  centerMapOn(lat: number, lon: number, zoomLevel: number = 17): void {
+  centerMapOn(lat: number, lon: number, rotationZ: number, zoomLevel: number = 17): void {
     if (!this.map) return;
-    
+    const bearingInDegrees = rotationZ * (180 / -Math.PI);
     const options: FlyToOptions = {
       center: [lon, lat],
       zoom: zoomLevel,
       pitch: 45,
-      bearing: -17.6,
+      bearing: bearingInDegrees,
       speed: 0.8,
       curve: 1,
       essential: true
@@ -286,9 +315,9 @@ export class MapComponent implements OnInit, OnDestroy{
     this.map.flyTo(options);
   }
 
-  private followCar(lng: number, lat: number): void {
+  private followCar(lng: number, lat: number, rotationZ: number): void {
     if (!this.map) return;
-    const bearingInDegrees = this.carTransform.rotateZ * (180 / -Math.PI);
+    const bearingInDegrees = rotationZ * (180 / -Math.PI);
     this.map.easeTo({
       center: [lng, lat],
       duration: 0,
@@ -296,10 +325,6 @@ export class MapComponent implements OnInit, OnDestroy{
       zoom: 17,
       bearing: bearingInDegrees
     });
-  }
-
-  toggleFollow(): void {
-    this.isFollowing.set(!this.isFollowing());
   }
 
   private calculateDistance(point1: [number, number], point2: [number, number]): number {
@@ -321,10 +346,6 @@ export class MapComponent implements OnInit, OnDestroy{
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();
-    }
-
-    if (this.routeSubscription) {
-      this.routeSubscription.unsubscribe();
     }
   }
 }

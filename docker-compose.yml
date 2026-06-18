@@ -22,6 +22,7 @@ services:
       - DISH_IMAGES_PATH=/app/images/
       - SERVER_PORT=8080
       - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
+      - WEBHOOK_SECRET_KEY=${WEBHOOK_SECRET_KEY}
     volumes:
       - ./images:/app/images
     ports:

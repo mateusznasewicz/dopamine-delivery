@@ -2,5 +2,5 @@ package dev.mateusznasewicz.dopaminedeliverybackend.dto;
 
 import java.util.List;
 
-public record PaymentRequest(List<CartItemDTO> items) {
+public record PaymentRequest(List<CartItemDTO> items, String guestID, Coordinates restaurantCoordinates, Coordinates deliveryCoordinates) {
 }

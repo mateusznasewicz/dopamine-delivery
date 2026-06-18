@@ -22,12 +22,8 @@ export class RestaurantListComponent{
   private restaurantStateservice = inject(RestaurantStateService);
   restaurants = this.restaurantStateservice.restaurants;
 
-  startDelivery(restaurant: Restaurant) {
-    this.deliveryService.setRestaurant(restaurant);
-    // this.deliveryService.startDelivery();
-  }
-
   viewMenu(restaurant: Restaurant) {
+    this.deliveryService.setRestaurant(restaurant);
     const menu: { [key: string]: MenuItem[] } = {};
     const cuisineTags = restaurant.properties.other_tags.cuisine!.split(';');
 

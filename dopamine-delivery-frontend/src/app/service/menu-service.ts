@@ -10,12 +10,6 @@ export class MenuService {
   private http: HttpClient = inject(HttpClient);
   private endpoint: string = "/api/menu"
 
-  getRestaurantImage(cuisine: string): Observable<string> {
-    const params = new HttpParams().set('cuisine', cuisine);
-    const url = `${this.endpoint}/restaurant-header`;
-    return this.http.get(url, {params: params, responseType: 'text'});
-  }
-
   getRestaurantMenu(cuisine: string): Observable<MenuItem[]> {
     const params = new HttpParams().set('cuisine', cuisine);
     return this.http.get<MenuItem[]>(this.endpoint, {params: params});
