@@ -40,9 +40,9 @@ public class CarService {
         activeCars.put(carId, car);
         log.info("Car {} registered.", carId);
         car.startRoute(route)
-                .thenRun(() -> {
-                    unregisterCar(carId);
-                });
+            .thenRun(() -> {
+                unregisterCar(carId);
+            });
     }
 
     private void unregisterCar(Long carId) {

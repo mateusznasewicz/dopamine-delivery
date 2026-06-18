@@ -7,5 +7,6 @@ public record CarStateDTO(
         double lng,
         double destinationLat,
         double destinationLng,
-        double speed
+        double speed,
+        boolean isMoving
 ) {}

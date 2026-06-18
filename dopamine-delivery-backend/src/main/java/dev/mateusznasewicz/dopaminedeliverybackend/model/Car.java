@@ -54,7 +54,8 @@ public class Car {
                 this.lng,
                 this.destinationLat,
                 this.destinationLng,
-                this.speed
+                this.speed,
+                this.isMoving
         );
     }
 

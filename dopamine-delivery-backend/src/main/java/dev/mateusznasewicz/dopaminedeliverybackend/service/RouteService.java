@@ -16,7 +16,7 @@ public class RouteService {
             .build();
 
     public List<Coordinates> getRoute(Coordinates start, Coordinates end) {
-        String url = "https://router.project-osrm.org/route/v1/driving/" + start.lng() + "," + start.lat() + ";" + end.lng() + "," + end.lat() + "?geometries=geojson";
+        String url = "https://router.project-osrm.org/route/v1/driving/" + start.lng() + "," + start.lat() + ";" + end.lng() + "," + end.lat() + "?geometries=geojson&overview=full";
         log.info("Requesting route {}", url);
         OsrmResponse res =  restClient.get()
                 .uri(url)

@@ -1,0 +1,12 @@
+FROM node:22-alpine AS web-builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build -- --configuration=production
+
+FROM nginx:alpine
+COPY --from=web-builder /app/dist/dopamine-delivery-frontend/browser /usr/share/nginx/html/angular
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

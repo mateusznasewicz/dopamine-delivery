@@ -4,10 +4,13 @@ export interface CarState {
     speed: number;
     lng: number;
     lat: number;
+    isMoving: boolean;
+
     destinationLng: number;
     destinationLat: number;
-    
+    targetQueue: [number, number][];
     rotationZ: number
     localLng: number; 
     localLat: number;
+    isBuffering: boolean;
 }

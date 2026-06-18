@@ -8,7 +8,6 @@ import { MapComponent } from "../map-component/map-component";
 import { finalize } from 'rxjs';
 import { Router, RouterOutlet } from '@angular/router';
 import { RestaurantStateService } from '../../service/restaurant-state-service';
-import { BreakpointObserver } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-dashboard-component',

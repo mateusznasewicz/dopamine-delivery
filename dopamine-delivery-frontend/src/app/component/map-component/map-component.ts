@@ -1,5 +1,5 @@
 import { Component, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
-import { AddLayerObject, FlyToOptions, Map, MercatorCoordinate } from 'maplibre-gl';
+import { AddLayerObject, FlyToOptions, Map, MercatorCoordinate, Marker } from 'maplibre-gl';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { WebSocketService } from '../../service/web-socket-service';
@@ -66,6 +66,33 @@ export class MapComponent implements OnInit, OnDestroy{
     this.map.on('load', () => {
       this.setup3dBuidlingsLayer();
       this.setupCarLayer();
+      this.map.addSource('car-route-source', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [] // Na początku puste, uzupełnimy dynamicznie
+          }
+        }
+      });
+
+      // Dodajemy warstwę, która określa JAK ta linia ma wyglądać
+      this.map.addLayer({
+        id: 'car-route-layer',
+        type: 'line',
+        source: 'car-route-source',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#ff0000', // Czerwony kolor linii
+          'line-width': 5,         // Grubość linii w pikselach
+          'line-opacity': 0.75     // Lekka przezroczystość
+        }
+      });
     });
   }
 
@@ -90,39 +117,123 @@ export class MapComponent implements OnInit, OnDestroy{
     }
   }
 
+  private updateRouteLine(car: CarState): void {
+    if (!this.map || !this.map.getSource('car-route-source')) return;
+
+    const points: [number, number][] = [];
+
+    points.push([car.localLng, car.localLat]);
+
+    if (car.destinationLng && car.destinationLat) {
+      points.push([car.destinationLng, car.destinationLat]);
+      console.log(car.destinationLng,  car.destinationLat)
+    }
+
+    if (car.targetQueue && car.targetQueue.length > 0) {
+      points.push(...car.targetQueue);
+    }
+
+    const source = this.map.getSource('car-route-source') as maplibregl.GeoJSONSource;
+    
+    if (source) {
+      source.setData({
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: points
+        }
+      });
+    }
+  }
+
+  private setNextTarget(car: CarState): void {
+    if (!car.targetQueue || car.targetQueue.length === 0) {
+      car.isBuffering = true;
+      car.destinationLng = car.localLng;
+      car.destinationLat = car.localLat;
+      return;
+    }
+    
+    if (car.isMoving && car.isBuffering && car.targetQueue.length < 3) {
+      return;
+    }
+
+    console.log("bufor po wypelnieniu: " + car.targetQueue.length);
+
+    car.isBuffering = false;
+    const nextStep = car.targetQueue.shift();
+
+    if (nextStep) {
+      car.destinationLng = nextStep[0];
+      car.destinationLat = nextStep[1];
+      
+      car.rotationZ = this.calculateRotationZ(
+        [car.localLng, car.localLat], 
+        [car.destinationLng, car.destinationLat]
+      );
+    }
+  }
+
+  private handleDesync(car: CarState){
+    car.localLng = car.lng;
+    car.localLat = car.lat;
+
+    car.destinationLng = car.lng;
+    car.destinationLat = car.lat;
+
+    car.targetQueue = [];
+    car.isBuffering = true;
+  }
+
+  private handleCarMovement(car: CarState, elapsedTime: number){
+    const start: [number,number] = [car.localLng, car.localLat];
+    const end: [number,number] = [car.destinationLng, car.destinationLat];
+    const remainingDistance = this.calculateDistance(start, end);
+    const speedMS = car.speed / 3.6;
+    const distanceTraveledInThisFrame = speedMS * elapsedTime;
+    
+    if(distanceTraveledInThisFrame >= remainingDistance ) {
+      car.localLng = car.destinationLng;
+      car.localLat = car.destinationLat;
+      this.setNextTarget(car);
+    } else {
+      const progress = Math.min(distanceTraveledInThisFrame / remainingDistance, 1);
+      car.localLng = car.localLng + (car.destinationLng - car.localLng) * progress;
+      car.localLat = car.localLat + (car.destinationLat - car.localLat) * progress;
+    }
+  }
+
   private drawCars(){
     let lastFrameTime = performance.now();
 
     const drawLoop = (currentTime: number) => {
       const elapsedTime = (currentTime - lastFrameTime) / 1000;
-      
+      lastFrameTime = currentTime;
+
       if (!this.cars() || this.cars().length === 0) {
         this.isAnimationLoopRunning = false;
         return;
       }
 
       this.cars().forEach(car => {
-        const desync  = this.calculateDistance([car.localLng, car.localLat], [car.lng, car.lat]);
-        if(desync > 30){
-          car.localLat = car.lat;
-          car.localLng = car.lng;
+        this.updateRouteLine(car)
+        
+        if (car.isBuffering) {
+          this.setNextTarget(car);
+        }
+
+        if (car.isBuffering) {
+          return; 
+        }
+
+        const packetLag = car.targetQueue ? car.targetQueue.length : 0;
+        if (packetLag > 6) {
+          this.handleDesync(car);
           return;
         }
 
-        const start: [number,number] = [car.localLng, car.localLat];
-        const end: [number,number] = [car.destinationLng, car.destinationLat];
-        const remainingDistance = this.calculateDistance(start, end);
-        const speedMS = car.speed / 3.6;
-        const distanceTraveledInThisFrame = speedMS * elapsedTime;
-        
-        if(distanceTraveledInThisFrame >= remainingDistance ) {
-          car.localLng = car.destinationLng;
-          car.localLat = car.destinationLat;
-        } else {
-          const progress = Math.min(distanceTraveledInThisFrame / remainingDistance, 1);
-          car.localLng = car.localLng + (car.destinationLng - car.localLng) * progress;
-          car.localLat = car.localLat + (car.destinationLat - car.localLat) * progress;
-        }
+        this.handleCarMovement(car, elapsedTime);
         
         if (this.isFollowing() && car.id == this.selectedCar()!.id) {
           this.followCar(car.localLng, car.localLat, car.rotationZ);
@@ -130,7 +241,6 @@ export class MapComponent implements OnInit, OnDestroy{
 
       });
       
-      lastFrameTime = currentTime;
       if (this.map) {
         this.map.triggerRepaint();
       }
@@ -138,6 +248,17 @@ export class MapComponent implements OnInit, OnDestroy{
     }
 
     requestAnimationFrame(drawLoop);
+  }
+
+   private calculateRotationZ(start: [number, number], end: [number, number]): number {
+    const startM = MercatorCoordinate.fromLngLat(start, 0);
+    const endM = MercatorCoordinate.fromLngLat(end, 0);
+
+    const dx = endM.x - startM.x;
+    const dy = endM.y - startM.y;
+
+    const angleRad = Math.atan2(dx, dy);
+    return angleRad - Math.PI;
   }
 
   private setup3dBuidlingsLayer(): void {
