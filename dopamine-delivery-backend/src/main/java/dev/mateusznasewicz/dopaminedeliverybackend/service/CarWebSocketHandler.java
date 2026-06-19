@@ -38,7 +38,7 @@ public class CarWebSocketHandler extends TextWebSocketHandler {
     public void broadcastCarList(Collection<CarStateDTO> cars){
         String jsonMessage = objectMapper.writeValueAsString(cars);
         TextMessage message = new TextMessage(jsonMessage);
-        log.info("Broadcasting message: {}", jsonMessage);
+
         for(WebSocketSession session: sessions){
             if(session.isOpen()) {
                 try {

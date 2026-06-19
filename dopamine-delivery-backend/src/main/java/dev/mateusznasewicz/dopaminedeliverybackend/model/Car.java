@@ -5,8 +5,6 @@ import dev.mateusznasewicz.dopaminedeliverybackend.dto.Coordinates;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.geo.Point;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +13,6 @@ import java.util.concurrent.Executors;
 @AllArgsConstructor
 @Getter
 @Setter
-@Slf4j
 public class Car {
     private long id;
     private String guestID;
@@ -101,7 +98,6 @@ public class Car {
                 }
             }
 
-            log.info("Car {} moved to: ({}, {})", this.id, this.lng, this.lat);
             if (reachedTarget) {
                 break;
             }

@@ -66,33 +66,6 @@ export class MapComponent implements OnInit, OnDestroy{
     this.map.on('load', () => {
       this.setup3dBuidlingsLayer();
       this.setupCarLayer();
-      this.map.addSource('car-route-source', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'LineString',
-            coordinates: [] // Na początku puste, uzupełnimy dynamicznie
-          }
-        }
-      });
-
-      // Dodajemy warstwę, która określa JAK ta linia ma wyglądać
-      this.map.addLayer({
-        id: 'car-route-layer',
-        type: 'line',
-        source: 'car-route-source',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#ff0000', // Czerwony kolor linii
-          'line-width': 5,         // Grubość linii w pikselach
-          'line-opacity': 0.75     // Lekka przezroczystość
-        }
-      });
     });
   }
 
@@ -117,61 +90,35 @@ export class MapComponent implements OnInit, OnDestroy{
     }
   }
 
-  private updateRouteLine(car: CarState): void {
-    if (!this.map || !this.map.getSource('car-route-source')) return;
-
-    const points: [number, number][] = [];
-
-    points.push([car.localLng, car.localLat]);
-
-    if (car.destinationLng && car.destinationLat) {
-      points.push([car.destinationLng, car.destinationLat]);
-      console.log(car.destinationLng,  car.destinationLat)
-    }
-
-    if (car.targetQueue && car.targetQueue.length > 0) {
-      points.push(...car.targetQueue);
-    }
-
-    const source = this.map.getSource('car-route-source') as maplibregl.GeoJSONSource;
-    
-    if (source) {
-      source.setData({
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: points
-        }
-      });
-    }
-  }
-
   private setNextTarget(car: CarState): void {
     if (!car.targetQueue || car.targetQueue.length === 0) {
       car.isBuffering = true;
-      car.destinationLng = car.localLng;
-      car.destinationLat = car.localLat;
+      car.lng = car.localLng;
+      car.lat = car.localLat;
+      if(!car.isMoving){
+        this.webSocketService.deleteCar(car.id);
+      }
       return;
     }
     
-    if (car.isMoving && car.isBuffering && car.targetQueue.length < 3) {
+    if (car.isMoving && car.isBuffering && car.targetQueue.length < 10) {
       return;
     }
-
-    console.log("bufor po wypelnieniu: " + car.targetQueue.length);
 
     car.isBuffering = false;
     const nextStep = car.targetQueue.shift();
 
     if (nextStep) {
-      car.destinationLng = nextStep[0];
-      car.destinationLat = nextStep[1];
+      car.lng = nextStep[0];
+      car.lat = nextStep[1];
       
-      car.rotationZ = this.calculateRotationZ(
-        [car.localLng, car.localLat], 
-        [car.destinationLng, car.destinationLat]
-      );
+      const dist = this.calculateDistance([car.localLng, car.localLat], [car.lng, car.lat]);
+      if (dist > 1.5) {
+        car.rotationZ = this.calculateRotationZ(
+          [car.localLng, car.localLat], 
+          [car.lng, car.lat]
+        );
+      }
     }
   }
 
@@ -179,8 +126,8 @@ export class MapComponent implements OnInit, OnDestroy{
     car.localLng = car.lng;
     car.localLat = car.lat;
 
-    car.destinationLng = car.lng;
-    car.destinationLat = car.lat;
+    car.lng = car.lng;
+    car.lat = car.lat;
 
     car.targetQueue = [];
     car.isBuffering = true;
@@ -188,19 +135,29 @@ export class MapComponent implements OnInit, OnDestroy{
 
   private handleCarMovement(car: CarState, elapsedTime: number){
     const start: [number,number] = [car.localLng, car.localLat];
-    const end: [number,number] = [car.destinationLng, car.destinationLat];
+    const end: [number,number] = [car.lng, car.lat];
     const remainingDistance = this.calculateDistance(start, end);
-    const speedMS = car.speed / 3.6;
-    const distanceTraveledInThisFrame = speedMS * elapsedTime;
+    let speedMS = car.speed / 3.6;
     
+    const bufferLength = car.targetQueue ? car.targetQueue.length : 0;
+
+    if (bufferLength < 4) {
+      speedMS *= 0.5; 
+    } else if (bufferLength < 8) {
+      speedMS *= 0.8; 
+    } else if (bufferLength > 15) {
+      speedMS *= 1.2;
+    }
+
+    const distanceTraveledInThisFrame = speedMS * elapsedTime;
     if(distanceTraveledInThisFrame >= remainingDistance ) {
-      car.localLng = car.destinationLng;
-      car.localLat = car.destinationLat;
+      car.localLng = car.lng;
+      car.localLat = car.lat;
       this.setNextTarget(car);
     } else {
       const progress = Math.min(distanceTraveledInThisFrame / remainingDistance, 1);
-      car.localLng = car.localLng + (car.destinationLng - car.localLng) * progress;
-      car.localLat = car.localLat + (car.destinationLat - car.localLat) * progress;
+      car.localLng = car.localLng + (car.lng - car.localLng) * progress;
+      car.localLat = car.localLat + (car.lat - car.localLat) * progress;
     }
   }
 
@@ -217,8 +174,10 @@ export class MapComponent implements OnInit, OnDestroy{
       }
 
       this.cars().forEach(car => {
-        this.updateRouteLine(car)
-        
+        if(!car.isMoving && car.targetQueue.length == 0){
+          this.webSocketService.deleteCar(car.id);
+        }
+
         if (car.isBuffering) {
           this.setNextTarget(car);
         }
@@ -228,7 +187,7 @@ export class MapComponent implements OnInit, OnDestroy{
         }
 
         const packetLag = car.targetQueue ? car.targetQueue.length : 0;
-        if (packetLag > 6) {
+        if (packetLag > 30) {
           this.handleDesync(car);
           return;
         }
@@ -381,43 +340,6 @@ export class MapComponent implements OnInit, OnDestroy{
     };
 
     this.map.addLayer(carLayer);
-  }
-
-  private setupRouteLayer(coordinates: [number, number][]): void {
-    const routeGeoJson = {
-      type: 'Feature' as const,
-      properties: {},
-      geometry: {
-        type: 'LineString' as const,
-        coordinates: coordinates
-      }
-    };
-
-    if (this.map.getSource('route-source')) {
-      const source = this.map.getSource('route-source') as any;
-      source.setData(routeGeoJson);
-      return;
-    }
-
-    this.map.addSource('route-source', {
-      type: 'geojson',
-      data: routeGeoJson
-    });
-
-    this.map.addLayer({
-      id: 'route-layer',
-      type: 'line',
-      source: 'route-source',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-      },
-      paint: {
-        'line-color': '#ff0000',
-        'line-width': 6,
-        'line-opacity': 0.8
-      }
-    });
   }
 
   centerMapOn(lat: number, lon: number, rotationZ: number, zoomLevel: number = 17): void {

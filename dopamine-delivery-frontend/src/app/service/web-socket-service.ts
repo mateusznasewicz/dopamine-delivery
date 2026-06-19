@@ -20,12 +20,12 @@ export class WebSocketService {
       this._cars.update((localCars: CarState[]) => {
       
         const ghostCars = localCars
-          .filter(lc => !incomingCars.some(ic => ic.id === lc.id) && lc.targetQueue && lc.targetQueue.length > 0)
+          .filter(lc => !incomingCars.some(ic => ic.id === lc.id))
           .map(lc => ({
             ...lc,
             isMoving: false
           }));
-
+        
         const allCarsToProcess = [...incomingCars, ...ghostCars];
 
         return allCarsToProcess.map((serverCar: CarState) => {
@@ -33,17 +33,22 @@ export class WebSocketService {
 
           if (existingCar) {
             const currentQueue = existingCar.targetQueue ? [...existingCar.targetQueue] : [];
-            const lastInQueue = currentQueue[currentQueue.length - 1];
-            const isNewTarget = lastInQueue 
-              ? (lastInQueue[0] !== serverCar.destinationLng || lastInQueue[1] !== serverCar.destinationLat)
-              : (existingCar.destinationLng !== serverCar.destinationLng || existingCar.destinationLat !== serverCar.destinationLat);
+            const start: [number, number] = [serverCar.lng, serverCar.lat]
+            const end: [number, number] = [serverCar.destinationLng, serverCar.destinationLat]
+            const newDest = existingCar.destinationLng != serverCar.destinationLng || existingCar.destinationLat != serverCar.destinationLat
             
-            if (isNewTarget && serverCar.destinationLng && serverCar.destinationLat) {
-              currentQueue.push([serverCar.destinationLng, serverCar.destinationLat]);
+            if(serverCar.isMoving){
+              if(newDest){
+                currentQueue.push([existingCar.destinationLng, existingCar.destinationLat]);
+              }
+              currentQueue.push(start);
             }
-
+            
             return {
               ...existingCar,
+              isMoving: serverCar.isMoving,
+              destinationLng: newDest ? end[0] : existingCar.destinationLng,
+              destinationLat: newDest ? end[1] : existingCar.destinationLat,
               targetQueue: currentQueue
             };
 
@@ -55,7 +60,7 @@ export class WebSocketService {
               localLat: serverCar.lat,
               localLng: serverCar.lng,
               rotationZ: this.calculateRotationZ(start, dest),
-              targetQueue: [dest],
+              targetQueue: [],
               isBuffering: true
             };
           }  
@@ -66,6 +71,10 @@ export class WebSocketService {
     this.socket.onclose = () => {
       setTimeout(() => this.connect(), 3000);
     };
+  }
+
+  deleteCar(id: number) {
+    this._cars.update(cars => cars.filter(c => c.id !== id));
   }
 
   private calculateRotationZ(start: [number, number], end: [number, number]): number {

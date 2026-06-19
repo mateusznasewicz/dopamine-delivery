@@ -25,7 +25,7 @@ public class CarService {
     private boolean wasEmptyInLastTick = true;
 
     public void startDelivery(String guestID, double restaurantLng, double restaurantLat, double deliveryLng, double deliveryLat) {
-        Car car = new Car(guestID, 50, restaurantLng, restaurantLat, deliveryLng, deliveryLat);
+        Car car = new Car(guestID, 100, restaurantLng, restaurantLat, deliveryLng, deliveryLat);
         long carId = this.lastId.incrementAndGet();
         car.setId(carId);
         Coordinates start = new Coordinates(restaurantLat, restaurantLng);
