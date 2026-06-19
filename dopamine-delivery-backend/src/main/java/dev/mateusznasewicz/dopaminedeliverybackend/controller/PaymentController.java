@@ -44,7 +44,7 @@ public class PaymentController {
     }
 
     @PostMapping("/webhook")
-    public void handleWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) throws SignatureVerificationException {
+    public ResponseEntity<Void> handleWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) throws SignatureVerificationException {
         Event event = Webhook.constructEvent(payload, sigHeader, webhookSecretKey);
         if(event.getType().equals("checkout.session.completed")){
             Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
@@ -60,5 +60,6 @@ public class PaymentController {
                 log.info("Płatność udana! Kurier "+guestID+" z (" + restaurantLat + ", " + restaurantLng + ") do (" + deliveryLat + ", " + deliveryLng + ")");
             }
         }
+        return ResponseEntity.ok().build();
     }
 }

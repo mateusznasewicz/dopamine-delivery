@@ -12,7 +12,7 @@ export class WebSocketService {
 
   connect(): void {
     const wsUrl = 'dopamine-delivery.mateusznasewicz.dev/ws/car-simulation'
-    this.socket = new WebSocket(`ws://${wsUrl}`);
+    this.socket = new WebSocket(`wss://${wsUrl}`);
 
     this.socket.onmessage = (event) => {
       const incomingCars: CarState[] = JSON.parse(event.data);
