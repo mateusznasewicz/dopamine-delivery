@@ -120,12 +120,18 @@ export class MapComponent implements OnInit, OnDestroy{
   }
 
   private handleDesync(car: CarState){
-    car.localLng = car.lng;
-    car.localLat = car.lat;
-
-    car.lng = car.destinationLng;
-    car.lat = car.destinationLat;
-
+    const lastKnownPosition = car.targetQueue[car.targetQueue.length - 1];
+    
+    if (lastKnownPosition) {
+      car.localLng = lastKnownPosition[0];
+      car.localLat = lastKnownPosition[1];
+      car.lng = lastKnownPosition[0];
+      car.lat = lastKnownPosition[1];
+    } else {
+      car.localLng = car.lng;
+      car.localLat = car.lat;
+    }
+    
     car.targetQueue = [];
     car.isBuffering = true;
   }
