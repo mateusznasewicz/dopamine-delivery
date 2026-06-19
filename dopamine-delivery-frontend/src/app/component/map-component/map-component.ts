@@ -95,13 +95,10 @@ export class MapComponent implements OnInit, OnDestroy{
       car.isBuffering = true;
       car.lng = car.localLng;
       car.lat = car.localLat;
-      if(!car.isMoving){
-        this.webSocketService.deleteCar(car.id);
-      }
       return;
     }
     
-    if (car.isMoving && car.isBuffering && car.targetQueue.length < 10) {
+    if (car.isMoving && car.isBuffering && car.targetQueue.length < 5) {
       return;
     }
 
@@ -126,8 +123,8 @@ export class MapComponent implements OnInit, OnDestroy{
     car.localLng = car.lng;
     car.localLat = car.lat;
 
-    car.lng = car.lng;
-    car.lat = car.lat;
+    car.lng = car.destinationLng;
+    car.lat = car.destinationLat;
 
     car.targetQueue = [];
     car.isBuffering = true;
@@ -165,7 +162,7 @@ export class MapComponent implements OnInit, OnDestroy{
     let lastFrameTime = performance.now();
 
     const drawLoop = (currentTime: number) => {
-      const elapsedTime = (currentTime - lastFrameTime) / 1000;
+      const elapsedTime = Math.min((currentTime - lastFrameTime) / 1000, 0.1);
       lastFrameTime = currentTime;
 
       if (!this.cars() || this.cars().length === 0) {
@@ -174,6 +171,7 @@ export class MapComponent implements OnInit, OnDestroy{
       }
 
       this.cars().forEach(car => {
+        console.log(car.targetQueue.length);
         if(!car.isMoving && car.targetQueue.length == 0){
           this.webSocketService.deleteCar(car.id);
         }
@@ -187,7 +185,7 @@ export class MapComponent implements OnInit, OnDestroy{
         }
 
         const packetLag = car.targetQueue ? car.targetQueue.length : 0;
-        if (packetLag > 30) {
+        if (packetLag > 20) {
           this.handleDesync(car);
           return;
         }
