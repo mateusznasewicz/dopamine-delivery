@@ -177,7 +177,7 @@ export class MapComponent implements OnInit, OnDestroy{
       }
 
       this.cars().forEach(car => {
-        console.log(car.targetQueue.length);
+        
         if(!car.isMoving && car.targetQueue.length == 0){
           this.webSocketService.deleteCar(car.id);
         }

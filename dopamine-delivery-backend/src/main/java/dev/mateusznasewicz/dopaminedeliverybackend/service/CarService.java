@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -31,8 +32,14 @@ public class CarService {
         Coordinates start = new Coordinates(restaurantLat, restaurantLng);
         Coordinates end = new Coordinates(deliveryLat, deliveryLng);
 
-        List<Coordinates> route = routeService.getRoute(start, end);
-        this.registerCar(car, route);
+        CompletableFuture.supplyAsync(() -> routeService.getRoute(start, end))
+                .thenAccept(route -> {
+                    this.registerCar(car, route);
+                })
+                .exceptionally(ex -> {
+                    log.error("Błąd pobierania trasy dla kuriera {}", guestID, ex);
+                    return null;
+                });
     }
 
     private void registerCar(Car car, List<Coordinates> route) {
