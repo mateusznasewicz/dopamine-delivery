@@ -1,7 +1,7 @@
 :host {
   display: block;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
   position: relative;
@@ -63,7 +63,7 @@
 }
 
 .expand-vertical {
-  height: calc(100vh - 124px);
+  height: calc(100dvh - 124px);
 }
 
 .expand-horizontal {

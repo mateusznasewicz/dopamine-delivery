@@ -51,7 +51,6 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
   border: 1px solid #e9ecef;
-  width: 100%;
 }
 
 .restaurant-card:hover {
