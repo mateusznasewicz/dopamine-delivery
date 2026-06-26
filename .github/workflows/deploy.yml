@@ -3,6 +3,8 @@ on:
     push:
         branches:
             - main
+    workflow_dispatch:
+        
 jobs:
     build-and-push:
         name: Docker image building
@@ -58,7 +60,7 @@ jobs:
                     target: "/app"
                     overwrite: true
 
-            - name: 🚀 Restart serwera i zmienne .env (SSH)
+            - name: Restart containers
               uses: appleboy/ssh-action@v1.0.3
               with:
                     host: ${{ secrets.DO_HOST }}
