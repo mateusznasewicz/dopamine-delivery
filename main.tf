@@ -5,26 +5,17 @@ terraform {
       version = "~> 2.0"
     }
   }
+
+  cloud {
+    organization = "mateusznasewicz"
+    workspaces {
+      name = "dopamine-delivery-cli-workspace"
+    }
+  }
 }
 
-provider "digitalocean" {
-  token = var.do_token
-}
-
-variable "do_token" {
-  type        = string
-  description = "Twój DigitalOcean API Token"
-}
-
-variable "ssh_public_key_path" {
-  type        = string
-  default     = "~/.ssh/id_ed25519.pub"
-  description = "Ścieżka do klucza SSH"
-}
-
-resource "digitalocean_ssh_key" "my_key" {
-  name       = "dopamine-delivery-key"
-  public_key = file(var.ssh_public_key_path)
+data "digitalocean_ssh_key" "github_actions_key" {
+  name = "github-actions-deploy"
 }
 
 resource "digitalocean_droplet" "web_app" {
@@ -32,28 +23,11 @@ resource "digitalocean_droplet" "web_app" {
     name      = "dopamine-delivery-prod"
     region    = "fra1"
     size      = "s-2vcpu-2gb"
-    ssh_keys  = [digitalocean_ssh_key.my_key.id]
-
-    connection {
-        type        = "ssh"
-        user        = "root"
-        private_key = file("~/.ssh/id_ed25519")
-        host        = self.ipv4_address
-    }
-
-    provisioner "file" {
-        source      = "./config"
-        destination = "/app"
-    }
+    ssh_keys  = [data.digitalocean_ssh_key.github_actions_key.id]
 
     user_data = <<-EOF
                 #!/bin/bash
                 set -e
-
-                until [ -f /app/docker-compose.yml ]; do
-                  echo "Oczekiwanie na przesłanie plików konfiguracyjnych przez Terraform..."
-                  sleep 2
-                done
 
                 apt-get update
                 apt-get install -y curl gnupg lsb-release
@@ -66,10 +40,6 @@ resource "digitalocean_droplet" "web_app" {
                 apt-get update
                 apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-                chmod +x /app/db-init.sh || true
-
-                cd /app
-                docker compose up -d
                 EOF
 }
 
