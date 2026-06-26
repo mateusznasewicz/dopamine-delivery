@@ -1,0 +1,75 @@
+name: Production deployment
+on:
+    push:
+        branches:
+            - main
+jobs:
+    build-and-push:
+        name: Docker image building
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Docker buildx configuration
+              uses: docker/setup-buildx-action@v3
+
+            - name: Docker hub login
+              uses: docker/login-action@v3
+              with:
+                    username: ${{ secrets.DOCKERHUB_USERNAME }}
+                    password: ${{ secrets.DOCKERHUB_TOKEN }}
+            
+            - name: Build and push backend image
+              uses: docker/build-push-action@v5
+              with:
+                    context: ./dopamine-delivery-backend
+                    file: ./Dockerfile.backend
+                    push: true
+                    tags: ${{ secrets.DOCKERHUB_USERNAME }}/dopamine-delivery-backend:latest
+                    cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/dopamine-delivery-backend:buildcache
+                    cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/dopamine-delivery-backend:buildcache,mode=max
+
+            - name: Build and push nginx frontend image
+              uses: docker/build-push-action@v5
+              with:
+                    context: ./dopamine-delivery-frontend
+                    file: ./Dockerfile.nginx
+                    push: true
+                    tags: ${{ secrets.DOCKERHUB_USERNAME }}/dopamine-delivery-frontend:latest
+                    cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/dopamine-delivery-frontend:buildcache
+                    cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/dopamine-delivery-frontend:buildcache,mode=max
+
+    deploy:
+        name: Deploy on digital ocean droplet
+        needs: build-and-push
+        runs-on: ubuntu-latest
+        steps:
+            - name: Config files download
+              uses: actions/checkout@v4
+
+            - name: SCP config files
+              uses: appleboy/scp-action@v0.1.7
+              with:
+                    host: ${{ secrets.DO_HOST }}
+                    username: root
+                    key: ${{ secrets.DO_SSH_KEY }}
+                    source: "config/" 
+                    target: "/app"
+                    overwrite: true
+
+            - name: 🚀 Restart serwera i zmienne .env (SSH)
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                    host: ${{ secrets.DO_HOST }}
+                    username: root
+                    key: ${{ secrets.DO_SSH_KEY }}
+                    script: |
+                        cd /app
+                        echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" > .env
+                        echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" >> .env
+                        
+                        docker compose pull
+                        docker compose up -d --remove-orphans
+                        
+                        docker image prune -af
