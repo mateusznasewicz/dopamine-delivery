@@ -4,7 +4,7 @@ on:
         branches:
             - main
     workflow_dispatch:
-        
+
 jobs:
     build-and-push:
         name: Docker image building
@@ -67,7 +67,7 @@ jobs:
                     username: root
                     key: ${{ secrets.DO_SSH_KEY }}
                     script: |
-                        cd /app
+                        cd /app/config
                         echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" > .env
                         echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" >> .env
                         
